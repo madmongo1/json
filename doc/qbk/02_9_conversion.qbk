@@ -9,17 +9,14 @@
 
 [/-----------------------------------------------------------------------------]
 
-[section:exchange Value Exchange]
+[section:conversion Value Conversion]
 
 While the __value__ container makes it easy to create ad-hoc structures,
 often it is necessary to convert between JSON and specific user-defined
-types. The library provides a set of supporting features called
-"value exchange" to support this use case. Three mechanisms for
-handling a user-defined type `T` are possible:
+types. The library provides a set of customization points to enable
+conversions between objects of type `T` and a JSON value:
 
-* Using member functions:
-  * `void T::to_json( value& ) const`
-  * `void T::from_json( value const& )`
+* By specializing
 
 * With free functions in the same namespace as `T`:
   * `void to_json( T const&, value& )`

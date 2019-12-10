@@ -14,6 +14,8 @@
 
 #include "test_suite.hpp"
 
+#if 0
+
 namespace boost {
 namespace json {
 
@@ -318,40 +320,43 @@ struct customer
     std::string name;
     bool delinquent;
 
-    void to_json( value& jv) const;
-    void from_json( value const& jv );
+    customer() = default;
+    explicit customer( value const& );
+    value to_json_hook( storage_ptr sp ) const;
 };
 
 //]
 
 BOOST_STATIC_ASSERT(
-    ::boost::json::detail::has_mf_to_json<customer>::value);
+    ::boost::json::detail::has_to_json_mf<customer>::value);
 
 BOOST_STATIC_ASSERT(
     has_to_json<customer>::value);
 
-BOOST_STATIC_ASSERT(
-    has_from_json<customer>::value);
+//BOOST_STATIC_ASSERT(
+//    has_from_json<customer>::value);
 
 //[snippet_exchange_2
 
-void customer::to_json( value& jv ) const
+value customer::to_json_hook( storage_ptr sp ) const
 {
-    // Turn jv into an object
-    auto& obj = jv.emplace_object();
+    // Start with an empty object
+    value jv( object_kind, std::move(sp) );
+    object& obj = jv.get_object();
 
     // Each field has its own key/value pair in the object
-
     obj.emplace( "id", this->id );
     obj.emplace( "name", string_view( this->name ));
     obj.emplace( "delinquent", this->delinquent );
+
+    return jv;
 }
 
 //]
 
 //[snippet_exchange_3
 
-void customer::from_json( value const& jv )
+customer::customer( value const& jv )
 {
     // as_object() will throw if jv.kind() != kind::object
     auto const& obj = jv.as_object();
@@ -375,14 +380,17 @@ usingExchange1()
 {
     //[snippet_exchange_4
 
-    customer cust{ 1, "John Doe", false };
+    customer cust;
+    cust.id = 1;
+    cust.name = "John Doe";
+    cust.delinquent = false;
 
     // Convert customer to value
-    value jv = cust;
+    value jv = to_json( cust );
 
     // Store value in customer
-    customer cust2;
-    jv.store( cust2 );
+    //customer cust2;
+    //cust2 = value_cast<customer>( jv );
 
     //]
 }
@@ -393,16 +401,16 @@ usingExchange1()
 } // boost
 //[snippet_exchange_5
 
-// Specializations of value_exchange must be
+// Specializations of conversion must be
 // declared in the namespace ::boost::json.
 namespace boost {
 namespace json {
 
 template<>
-struct value_exchange< ::std::complex< double > >
+struct traits< ::std::complex< double > >
 {
-    static void to_json( ::std::complex< double > const& t, value& jv );
-    static void from_json( ::std::complex< double >& t, value const& jv );
+    static ::boost::json::value to_json_hook(
+        ::std::complex< double > const& t, ::boost::json::storage_ptr sp );
 };
 
 } // namespace json
@@ -415,31 +423,35 @@ namespace json {
 BOOST_STATIC_ASSERT(
     has_to_json<std::complex<double>>::value);
 
-BOOST_STATIC_ASSERT(
-    has_from_json<std::complex<double>>::value);
+//BOOST_STATIC_ASSERT(
+//    has_from_json<std::complex<double>>::value);
 
 //[snippet_exchange_6
 
-void
-value_exchange< ::std::complex< double > >::
-to_json( ::std::complex< double > const& t, value& jv )
+::boost::json::value
+traits< ::std::complex< double > >::
+to_json_hook( ::std::complex< double > const& t, ::boost::json::storage_ptr sp )
 {
     // Store a complex number as a 2-element array
-    auto& arr = jv.emplace_array();
+    ::boost::json::value jv( ::boost::json::array_kind, std::move(sp) );
+    auto& arr = jv.get_array();
 
     // Real part first
     arr.emplace_back( t.real() );
 
     // Imaginary part last
     arr.emplace_back( t.imag() );
+
+    return jv;
 }
 
 //]
 
 //[snippet_exchange_7]
 
+#if 0
 void
-value_exchange< ::std::complex< double > >::
+conversion< ::std::complex< double > >::
 from_json( ::std::complex< double >& t, value const& jv )
 {
     // as_array() throws if jv.kind() != kind::array
@@ -452,6 +464,7 @@ from_json( ::std::complex< double >& t, value const& jv )
     // imaginary part last
     t.imag( arr.at(1).as_double() );
 }
+#endif
 
 //]
 
@@ -465,11 +478,11 @@ usingExchange2()
     std::complex<double> c = { 3.14159, 2.71727 };
 
     // Convert std::complex<double> to value
-    value jv = c;
+    value jv = to_json(c);
 
     // Store value in std::complex<double>
-    std::complex<double> c2;
-    jv.store( c2 );
+    //std::complex<double> c2;
+    //c2 = value_cast<std::complex<double>>(jv);
 
     //]
 }
@@ -503,3 +516,5 @@ TEST_SUITE(snippets_test, "boost.json.snippets");
 
 } // json
 } // boost
+
+#endif

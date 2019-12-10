@@ -61,8 +61,11 @@
 [def __storage__                [link json.ref.boost__json__storage `storage`]]
 [def __storage_ptr__            [link json.ref.boost__json__storage_ptr `storage_ptr`]]
 [def __string__                 [link json.ref.boost__json__string `string`]]
+[def __to_json__                [link json.ref.boost__json__to_json `to_json`]]
+[def __to_json_traits__         [link json.ref.boost__json__to_json_traits `to_json_traits`]]
 [def __to_string__              [link json.ref.boost__json__to_string `to_string`]]
-[def __value_exchange__         [link json.ref.boost__json__value_exchange `value_exchange`]]
+[def __value_cast__             [link json.ref.boost__json__value_cast `value_cast`]]
+[def __value_cast_traits__      [link json.ref.boost__json__value_cast_traits `value_cast_traits`]]
 
 [def __initializer_list__       [@https://en.cppreference.com/w/cpp/utility/initializer_list]]
 [def __memory_resource__        [@https://en.cppreference.com/w/cpp/memory/memory_resource `std::pmr::memory_resource`]]
