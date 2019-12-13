@@ -27,9 +27,12 @@ namespace json {
     @li If @ref value is constructible `T` then the
         function returns `value( t, sp )`.
 
+    @li If `T::to_json` exists then the function returns
+        `t.to_json( sp )`.
+
     @li If @ref to_json_traits contains a specialization
         for `T`, then the function returns
-        `to_json_traits( t, sp )`.
+        `to_json_traits<T>::construct( t, sp )`.
 
     @li Otherwise if `T` matches any from a set of
         generic requirements implemented by the library,

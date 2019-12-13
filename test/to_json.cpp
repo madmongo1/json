@@ -22,6 +22,7 @@ namespace to_json_test_ns {
 
 //----------------------------------------------------------
 
+// traits
 struct T1
 {
     int i = 42;
@@ -46,30 +47,22 @@ namespace to_json_test_ns {
 
 //----------------------------------------------------------
 
+// member function
 struct T2
 {
     bool b = false;
-};
-} // to_json_test_ns
-namespace boost {
-namespace json {
-template<>
-struct to_json_traits<::to_json_test_ns::T2>
-{
-    static
-    value
-    construct(
-        ::to_json_test_ns::T2 const& t, storage_ptr sp)
+
+    ::boost::json::value
+    to_json(::boost::json::storage_ptr sp) const
     {
-        return value(t.b, std::move(sp));
+        return ::boost::json::value(b, std::move(sp));
     }
 };
-} // json
-} // boost
-namespace to_json_test_ns {
+BOOST_STATIC_ASSERT(::boost::json::detail::has_to_json_mf<T2>::value);
 
 //----------------------------------------------------------
 
+// traits
 struct T3
 {
     T1 t1;
@@ -97,6 +90,7 @@ namespace to_json_test_ns {
 
 //----------------------------------------------------------
 
+// member function
 // uses generic algorithms
 struct T4
 {
@@ -107,27 +101,23 @@ struct T4
         : v({1,2,3})
         , s("test")
     {
+        ::boost::json::detail::to_json_impl_4<std::vector<int>>(std::vector<int>{}, {});
+        ::boost::json::detail::to_json_impl_4<T4>(T4{}, {});
     }
-};
-} // to_json_test_ns
-namespace boost {
-namespace json {
-template<>
-struct to_json_traits<::to_json_test_ns::T4>
-{
-    static
-    value
-    construct(
-        ::to_json_test_ns::T4 const& t, storage_ptr sp)
+#if 0
+    ::boost::json::value
+    to_json(::boost::json::storage_ptr sp) const
     {
         return {
-            to_json(t.v, sp),
-            to_json(t.s, sp) };
+            ::boost::json::to_json(v, sp),
+            ::boost::json::to_json(s, sp) };
     }
+#endif
 };
-} // json
-} // boost
-namespace to_json_test_ns {
+BOOST_STATIC_ASSERT(! std::is_constructible<::boost::json::value, T4>::value );
+BOOST_STATIC_ASSERT(! ::boost::json::detail::has_to_json_traits<T4>::value);
+BOOST_STATIC_ASSERT(! ::boost::json::detail::has_to_json_mf<T4>::value);
+BOOST_STATIC_ASSERT(! ::boost::json::has_to_json<T4>::value);
 
 //----------------------------------------------------------
 } // to_json_test_ns
