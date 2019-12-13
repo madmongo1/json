@@ -33,11 +33,14 @@ local sources = [ path.glob-tree ../include/boost/json : *.hpp *.ipp : detail im
 
 # Get the configured paths to doxygen and xsltproc
 
-.doxygen = [ doxygen.name ] ;
-.doxygen ?= doxygen ;
+#.doxygen = [ doxygen.name ] ;
+#.doxygen ?= doxygen ;
+.doxygen = doxypress ;
 
 .xsltproc = [ xsltproc.name ] ;
 .xsltproc ?= xsltproc ;
+
+ECHO Using doxygen from "$(.doxygen)" ;
 
 #-------------------------------------------------------------------------------
 #
@@ -47,7 +50,7 @@ local sources = [ path.glob-tree ../include/boost/json : *.hpp *.ipp : detail im
 #
 make index.xml
     :
-        ./source.dox
+        ./doxypress.json
     :
         @make_doxygen_xml
     :
