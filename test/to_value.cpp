@@ -36,9 +36,9 @@ struct to_value_traits<::to_value_test_ns::T1>
     static
     value
     construct(
-        ::to_value_test_ns::T1 const& t, storage_ptr sp)
+        ::to_value_test_ns::T1 const& t, storage_ptr)
     {
-        return value(t.i, std::move(sp));
+        return { t.i };
     }
 };
 } // json
@@ -79,9 +79,7 @@ struct to_value_traits<::to_value_test_ns::T3>
     construct(
         ::to_value_test_ns::T3 const& t, storage_ptr sp)
     {
-        return ::boost::json::array({
-            to_value(t.t1, sp),
-            to_value(t.t2, sp)}, sp);
+        return { t.t1, t.t2 };
     }
 };
 } // json
