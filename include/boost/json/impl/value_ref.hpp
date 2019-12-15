@@ -41,6 +41,19 @@ from_const(
         detail::move(sp));
 }
 
+template<class T>
+value
+value_ref::
+from_rvalue(
+    void* p,
+    storage_ptr sp) noexcept
+{
+    return to_value(
+        detail::move(
+            *reinterpret_cast<T*>(p)),
+        detail::move(sp));
+}
+
 } // json
 } // boost
 

@@ -163,6 +163,21 @@ public:
 
     }
 
+#if 0
+    template<class T>
+    value_ref(T&& t
+        ,typename std::enable_if<
+            ! std::is_constructible<
+                string_view, T>::value &&
+            ! std::is_same<bool, T>::value
+                >::type* = 0)
+        : cf_{&from_rvalue<T>, &t}
+        , what_(what::cfunc)
+    {
+
+    }
+#endif
+
     value_ref(
         std::initializer_list<
             value_ref> t) noexcept
@@ -282,6 +297,13 @@ private:
     value
     from_const(
         void const* p,
+        storage_ptr sp) noexcept;
+
+    template<class T>
+    static
+    value
+    from_rvalue(
+        void* p,
         storage_ptr sp) noexcept;
 
     static
