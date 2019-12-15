@@ -275,26 +275,14 @@ private:
     value
     from_builtin(
         void const* p,
-        storage_ptr sp) noexcept
-    {
-        return value(
-            *reinterpret_cast<
-                T const*>(p),
-            detail::move(sp));
-    }
+        storage_ptr sp) noexcept;
 
     template<class T>
     static
     value
     from_const(
         void const* p,
-        storage_ptr sp) noexcept
-    {
-        return value(
-            *reinterpret_cast<
-                T const*>(p),
-            detail::move(sp));
-    }
+        storage_ptr sp) noexcept;
 
     static
     BOOST_JSON_DECL
@@ -365,5 +353,7 @@ private:
 #include <boost/json/value.hpp>
 
 // includes are at the bottom of <boost/json/value.hpp>
+//#include <boost/json/impl/value.hpp>
+//#include <boost/json/impl/value.ipp>
 
 #endif
