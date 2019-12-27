@@ -13,14 +13,13 @@ source_group(TREE ${PROJECT_SOURCE_DIR}/include/boost/json PREFIX json FILES ${P
 
 GroupSources(bench "/")
 
-# Disable auto-linking.
-add_definitions(-DBOOST_ALL_NO_LIB=1)
-
 include_directories(../test)
 
 if(MSVC)
     foreach(config MINSIZEREL RELWITHDEBINFO)
-        set(CMAKE_CXX_FLAGS_${config} "${CMAKE_CXX_FLAGS_${config}} /Ob2 /GL")
+        string(REPLACE "/Ob1" "/Ob2"
+            CMAKE_CXX_FLAGS_${config} ${CMAKE_CXX_FLAGS_${config}})
+        set(CMAKE_CXX_FLAGS_${config} "${CMAKE_CXX_FLAGS_${config}} /GL")
         set(CMAKE_EXE_LINKER_FLAGS_${config} "${CMAKE_EXE_LINKER_FLAGS_${config}} /LTCG")
     endforeach()
 endif()

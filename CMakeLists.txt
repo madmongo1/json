@@ -44,6 +44,9 @@ endfunction()
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 if(MSVC)
+    # Hide compiler logos.
+    set(CMAKE_CL_NOLOGO "/nologo" CACHE STRING "")
+
     add_definitions(
         /D_WIN32_WINNT=0x0601
         /D_CRT_SECURE_NO_WARNINGS
@@ -51,7 +54,6 @@ if(MSVC)
 
     add_compile_options(
         /permissive-  # strict C++
-        /W4           # enable all warnings
         /MP           # multi-processor compilation
     )
 
@@ -60,6 +62,9 @@ if(MSVC)
 
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /LTCG")
+
+    # Enable all warnings.
+    string(REPLACE "/W3" "/W4" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 
     # Use static run-time library.
     foreach(config DEBUG MINSIZEREL RELEASE RELWITHDEBINFO)
@@ -97,7 +102,13 @@ get_filename_component(BOOST_ROOT ../.. ABSOLUTE)
 
 include_directories(${BOOST_ROOT})
 link_directories(${BOOST_ROOT}/stage/lib)
+
+# Enable auto-linking for static boost libraries.
 add_definitions(-DBOOST_ALL_STATIC_LINK=1)
+
+# Disable auto-linking for this library.
+add_definitions(-DBOOST_JSON_NO_LIB=1)
+
 
 #-------------------------------------------------------------------------------
 
@@ -140,3 +151,8 @@ file(GLOB_RECURSE PROJECT_FILES
 add_subdirectory(bench)
 add_subdirectory(example)
 add_subdirectory(test)
+
+
+# Hide Visual Studio CMake warnings.
+set(HIDE_VS_DEFINITIONS ${CMAKE_C_COMPILER})
+set(HIDE_VS_DEFINITIONS)

@@ -11,7 +11,13 @@
       "configurationType": "Debug",
       "inheritEnvironments": [ "msvc_x64" ],
       "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
-      "buildRoot": "${env.BuildDir}\\${name}"
+      "buildRoot": "${env.BuildDir}\\${name}",
+      "variables": [
+        {
+          "name": "CMAKE_VERBOSE_MAKEFILE",
+          "value": "ON"
+        }
+      ]
     },
     {
       "name": "x64-MinSizeRel",
@@ -19,7 +25,13 @@
       "configurationType": "MinSizeRel",
       "inheritEnvironments": [ "msvc_x64" ],
       "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
-      "buildRoot": "${env.BuildDir}\\${name}"
+      "buildRoot": "${env.BuildDir}\\${name}",
+      "variables": [
+        {
+          "name": "CMAKE_VERBOSE_MAKEFILE",
+          "value": "ON"
+        }
+      ]
     },
     {
       "name": "x64-Release",
@@ -27,7 +39,13 @@
       "configurationType": "Release",
       "inheritEnvironments": [ "msvc_x64" ],
       "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
-      "buildRoot": "${env.BuildDir}\\${name}"
+      "buildRoot": "${env.BuildDir}\\${name}",
+      "variables": [
+        {
+          "name": "CMAKE_VERBOSE_MAKEFILE",
+          "value": "ON"
+        }
+      ]
     },
     {
       "name": "x64-RelWithDebInfo",
@@ -35,7 +53,13 @@
       "configurationType": "RelWithDebInfo",
       "inheritEnvironments": [ "msvc_x64" ],
       "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
-      "buildRoot": "${env.BuildDir}\\${name}"
+      "buildRoot": "${env.BuildDir}\\${name}",
+      "variables": [
+        {
+          "name": "CMAKE_VERBOSE_MAKEFILE",
+          "value": "ON"
+        }
+      ]
     },
     {
       "name": "x86-Debug",
@@ -43,7 +67,13 @@
       "configurationType": "Debug",
       "inheritEnvironments": [ "msvc_x86" ],
       "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
-      "buildRoot": "${env.BuildDir}\\${name}"
+      "buildRoot": "${env.BuildDir}\\${name}",
+      "variables": [
+        {
+          "name": "CMAKE_VERBOSE_MAKEFILE",
+          "value": "ON"
+        }
+      ]
     },
     {
       "name": "x86-MinSizeRel",
@@ -51,7 +81,13 @@
       "configurationType": "MinSizeRel",
       "inheritEnvironments": [ "msvc_x86" ],
       "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
-      "buildRoot": "${env.BuildDir}\\${name}"
+      "buildRoot": "${env.BuildDir}\\${name}",
+      "variables": [
+        {
+          "name": "CMAKE_VERBOSE_MAKEFILE",
+          "value": "ON"
+        }
+      ]
     },
     {
       "name": "x86-Release",
@@ -59,7 +95,13 @@
       "configurationType": "Release",
       "inheritEnvironments": [ "msvc_x86" ],
       "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
-      "buildRoot": "${env.BuildDir}\\${name}"
+      "buildRoot": "${env.BuildDir}\\${name}",
+      "variables": [
+        {
+          "name": "CMAKE_VERBOSE_MAKEFILE",
+          "value": "ON"
+        }
+      ]
     },
     {
       "name": "x86-RelWithDebInfo",
@@ -67,7 +109,13 @@
       "configurationType": "RelWithDebInfo",
       "inheritEnvironments": [ "msvc_x86" ],
       "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
-      "buildRoot": "${env.BuildDir}\\${name}"
+      "buildRoot": "${env.BuildDir}\\${name}",
+      "variables": [
+        {
+          "name": "CMAKE_VERBOSE_MAKEFILE",
+          "value": "ON"
+        }
+      ]
     }
   ]
 }
