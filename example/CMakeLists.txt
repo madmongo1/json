@@ -9,16 +9,18 @@
 
 GroupSources(example "/")
 
-add_executable (pretty
+add_executable(pretty
     ${PROJECT_SOURCE_DIR}/src/src.cpp
     file.hpp
     pretty.cpp
 )
 set_property(TARGET pretty PROPERTY FOLDER "example")
+target_link_libraries(pretty PRIVATE Threads::Threads)
 
-add_executable (validate
+add_executable(validate
     ${PROJECT_SOURCE_DIR}/src/src.cpp
     file.hpp
     validate.cpp
 )
 set_property(TARGET validate PROPERTY FOLDER "example")
+target_link_libraries(validate PRIVATE Threads::Threads)

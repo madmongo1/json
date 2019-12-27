@@ -10,6 +10,7 @@
       "generator": "Ninja",
       "configurationType": "Debug",
       "inheritEnvironments": [ "msvc_x64" ],
+      "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
       "buildRoot": "${env.BuildDir}\\${name}"
     },
     {
@@ -17,6 +18,7 @@
       "generator": "Ninja",
       "configurationType": "MinSizeRel",
       "inheritEnvironments": [ "msvc_x64" ],
+      "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
       "buildRoot": "${env.BuildDir}\\${name}"
     },
     {
@@ -24,6 +26,7 @@
       "generator": "Ninja",
       "configurationType": "Release",
       "inheritEnvironments": [ "msvc_x64" ],
+      "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
       "buildRoot": "${env.BuildDir}\\${name}"
     },
     {
@@ -31,6 +34,7 @@
       "generator": "Ninja",
       "configurationType": "RelWithDebInfo",
       "inheritEnvironments": [ "msvc_x64" ],
+      "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
       "buildRoot": "${env.BuildDir}\\${name}"
     },
     {
@@ -38,6 +42,7 @@
       "generator": "Ninja",
       "configurationType": "Debug",
       "inheritEnvironments": [ "msvc_x86" ],
+      "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
       "buildRoot": "${env.BuildDir}\\${name}"
     },
     {
@@ -45,6 +50,7 @@
       "generator": "Ninja",
       "configurationType": "MinSizeRel",
       "inheritEnvironments": [ "msvc_x86" ],
+      "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
       "buildRoot": "${env.BuildDir}\\${name}"
     },
     {
@@ -52,6 +58,7 @@
       "generator": "Ninja",
       "configurationType": "Release",
       "inheritEnvironments": [ "msvc_x86" ],
+      "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
       "buildRoot": "${env.BuildDir}\\${name}"
     },
     {
@@ -59,6 +66,7 @@
       "generator": "Ninja",
       "configurationType": "RelWithDebInfo",
       "inheritEnvironments": [ "msvc_x86" ],
+      "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
       "buildRoot": "${env.BuildDir}\\${name}"
     }
   ]

@@ -7,32 +7,25 @@
 # Official repository: https://github.com/vinniefalco/json
 #
 
-source_group (json FILES ${PROJECT_SOURCE_DIR}/include/boost/json.hpp)
-source_group (json FILES ${PROJECT_SOURCE_DIR}/include/boost/pilfer.hpp)
-source_group (TREE ${PROJECT_SOURCE_DIR}/include/boost/json PREFIX json FILES ${PROJECT_FILES})
+source_group(json FILES ${PROJECT_SOURCE_DIR}/include/boost/json.hpp)
+source_group(json FILES ${PROJECT_SOURCE_DIR}/include/boost/pilfer.hpp)
+source_group(TREE ${PROJECT_SOURCE_DIR}/include/boost/json PREFIX json FILES ${PROJECT_FILES})
 
 GroupSources(bench "/")
 
-# Disable auto-linking
+# Disable auto-linking.
 add_definitions(-DBOOST_ALL_NO_LIB=1)
 
 include_directories(../test)
 
-if (MSVC)
-    if (CMAKE_BUILD_TYPE EQUAL "Debug")
-    else()
-        add_compile_options(
-            /GL         # Whole program optimization
-            /Ob2        # inline any suitable
-            )
-
-        add_link_options(
-            /LTCG       # Link Time Code Generation
-            )
-    endif()
+if(MSVC)
+    foreach(config MINSIZEREL RELWITHDEBINFO)
+        set(CMAKE_CXX_FLAGS_${config} "${CMAKE_CXX_FLAGS_${config}} /Ob2 /GL")
+        set(CMAKE_EXE_LINKER_FLAGS_${config} "${CMAKE_EXE_LINKER_FLAGS_${config}} /LTCG")
+    endforeach()
 endif()
 
-add_executable (bench
+add_executable(bench
     ${PROJECT_FILES}
     ${PROJECT_SOURCE_DIR}/include/boost/json.hpp
     ${PROJECT_SOURCE_DIR}/include/boost/pilfer.hpp
@@ -40,5 +33,7 @@ add_executable (bench
     Jamfile
     bench.cpp
 )
+
+target_link_libraries(bench PRIVATE Threads::Threads)
 
 add_test(json-tests json-tests)
