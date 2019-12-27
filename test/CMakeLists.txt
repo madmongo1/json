@@ -10,6 +10,7 @@
 source_group(boost FILES ${PROJECT_SOURCE_DIR}/include/boost/json.hpp)
 source_group(boost FILES ${PROJECT_SOURCE_DIR}/include/boost/pilfer.hpp)
 source_group(TREE ${PROJECT_SOURCE_DIR}/include/boost/json PREFIX json FILES ${PROJECT_FILES})
+source_group(src FILES ${PROJECT_SOURCE_DIR}/src/src.cpp)
 
 GroupSources(test "/")
 
@@ -19,7 +20,6 @@ add_executable(json-tests
     ${PROJECT_FILES}
     ${PROJECT_SOURCE_DIR}/include/boost/json.hpp
     ${PROJECT_SOURCE_DIR}/include/boost/pilfer.hpp
-    ${PROJECT_SOURCE_DIR}/include/boost/json/json.natvis
     ${PROJECT_SOURCE_DIR}/src/src.cpp
     Jamfile
     test.hpp

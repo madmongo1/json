@@ -9,6 +9,8 @@
 
 GroupSources(example "/")
 
+source_group(src FILES ${PROJECT_SOURCE_DIR}/src/src.cpp)
+
 add_executable(pretty
     ${PROJECT_SOURCE_DIR}/src/src.cpp
     file.hpp

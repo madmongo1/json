@@ -10,6 +10,7 @@
 source_group(json FILES ${PROJECT_SOURCE_DIR}/include/boost/json.hpp)
 source_group(json FILES ${PROJECT_SOURCE_DIR}/include/boost/pilfer.hpp)
 source_group(TREE ${PROJECT_SOURCE_DIR}/include/boost/json PREFIX json FILES ${PROJECT_FILES})
+source_group(src FILES ${PROJECT_SOURCE_DIR}/src/src.cpp)
 
 GroupSources(bench "/")
 
