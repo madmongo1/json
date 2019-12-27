@@ -18,6 +18,8 @@ set(CMAKE_CXX_EXTENSIONS OFF CACHE STRING "")
 
 #-------------------------------------------------------------------------------
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 function(DoGroupSources curdir rootdir folder)
     file(GLOB children RELATIVE ${PROJECT_SOURCE_DIR}/${curdir} ${PROJECT_SOURCE_DIR}/${curdir}/*)
     foreach(child ${children})
@@ -42,8 +44,6 @@ endfunction()
 # JSON
 #
 #-------------------------------------------------------------------------------
-
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 if(MSVC)
     # Hide compiler logos.
