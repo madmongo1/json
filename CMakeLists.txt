@@ -8,6 +8,8 @@
 #
 
 cmake_minimum_required(VERSION 3.10.0)
+cmake_policy(VERSION 3.10.0)
+
 project(JSON VERSION 1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 11 CACHE STRING "")
