@@ -1,7 +1,8 @@
 {
   "environments": [
     {
-      "BuildDir": "${projectDir}\\out"
+      "BuildDir": "${projectDir}\\out",
+      "Verbose": "OFF"
     }
   ],
   "configurations": [
@@ -15,7 +16,7 @@
       "variables": [
         {
           "name": "CMAKE_VERBOSE_MAKEFILE",
-          "value": "ON"
+          "value": "${env.Verbose}"
         }
       ]
     },
@@ -29,7 +30,7 @@
       "variables": [
         {
           "name": "CMAKE_VERBOSE_MAKEFILE",
-          "value": "ON"
+          "value": "${env.Verbose}"
         }
       ]
     },
@@ -43,7 +44,7 @@
       "variables": [
         {
           "name": "CMAKE_VERBOSE_MAKEFILE",
-          "value": "ON"
+          "value": "${env.Verbose}"
         }
       ]
     },
@@ -57,7 +58,7 @@
       "variables": [
         {
           "name": "CMAKE_VERBOSE_MAKEFILE",
-          "value": "ON"
+          "value": "${env.Verbose}"
         }
       ]
     },
@@ -71,7 +72,7 @@
       "variables": [
         {
           "name": "CMAKE_VERBOSE_MAKEFILE",
-          "value": "ON"
+          "value": "${env.Verbose}"
         }
       ]
     },
@@ -85,7 +86,7 @@
       "variables": [
         {
           "name": "CMAKE_VERBOSE_MAKEFILE",
-          "value": "ON"
+          "value": "${env.Verbose}"
         }
       ]
     },
@@ -99,7 +100,7 @@
       "variables": [
         {
           "name": "CMAKE_VERBOSE_MAKEFILE",
-          "value": "ON"
+          "value": "${env.Verbose}"
         }
       ]
     },
@@ -113,7 +114,7 @@
       "variables": [
         {
           "name": "CMAKE_VERBOSE_MAKEFILE",
-          "value": "ON"
+          "value": "${env.Verbose}"
         }
       ]
     }
