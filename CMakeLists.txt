@@ -38,11 +38,9 @@ add_library(Boost::json ALIAS boost_json)
 
 target_compile_features(boost_json PUBLIC cxx_constexpr)
 
-target_include_directories(boost_json
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
-)
+target_include_directories(boost_json PUBLIC include)
+
+target_compile_definitions(boost_json PUBLIC BOOST_JSON_NO_LIB=1)
 
 if(BUILD_SHARED_LIBS)
     target_compile_definitions(boost_json PUBLIC BOOST_JSON_DYN_LINK=1)
@@ -57,7 +55,6 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 
     get_filename_component(BOOST_ROOT ../.. ABSOLUTE)
     target_include_directories(boost_json PUBLIC ${BOOST_ROOT})
-    target_compile_definitions(boost_json PUBLIC BOOST_JSON_NO_LIB=1)
     target_link_directories(boost_json PUBLIC ${BOOST_ROOT}/stage/lib)
 
     add_subdirectory(bench)
