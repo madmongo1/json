@@ -7,14 +7,12 @@
 # Official repository: https://github.com/vinniefalco/json
 #
 
-source_group(TREE ${CMAKE_SOURCE_DIR}/include/boost PREFIX "" FILES ${BOOST_JSON_HEADERS})
 source_group("" FILES
     Jamfile
     bench.cpp
 )
 
 add_executable(bench
-    ${BOOST_JSON_HEADERS}
     Jamfile
     bench.cpp
 )

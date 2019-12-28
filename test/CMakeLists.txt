@@ -7,15 +7,10 @@
 # Official repository: https://github.com/vinniefalco/json
 #
 
-source_group(TREE ${CMAKE_SOURCE_DIR}/include/boost PREFIX "" FILES ${BOOST_JSON_HEADERS})
-
 file(GLOB_RECURSE BOOST_JSON_TESTS_FILES CONFIGURE_DEPENDS Jamfile *.cpp *.hpp)
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "" FILES ${BOOST_JSON_TESTS_FILES})
 
-add_executable(tests
-    ${BOOST_JSON_HEADERS}
-    ${BOOST_JSON_TESTS_FILES}
-)
+add_executable(tests ${BOOST_JSON_TESTS_FILES})
 
 target_include_directories(tests PRIVATE .)
 target_link_libraries(tests PRIVATE boost_json)
