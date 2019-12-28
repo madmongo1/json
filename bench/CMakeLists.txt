@@ -7,33 +7,19 @@
 # Official repository: https://github.com/vinniefalco/json
 #
 
-source_group(json FILES ${PROJECT_SOURCE_DIR}/include/boost/json.hpp)
-source_group(json FILES ${PROJECT_SOURCE_DIR}/include/boost/pilfer.hpp)
-source_group(TREE ${PROJECT_SOURCE_DIR}/include/boost/json PREFIX json FILES ${PROJECT_FILES})
-source_group(src FILES ${PROJECT_SOURCE_DIR}/src/src.cpp)
-
-GroupSources(bench "/")
-
-include_directories(../test)
-
-if(MSVC)
-    foreach(config MINSIZEREL RELWITHDEBINFO)
-        string(REPLACE "/Ob1" "/Ob2"
-            CMAKE_CXX_FLAGS_${config} ${CMAKE_CXX_FLAGS_${config}})
-        set(CMAKE_CXX_FLAGS_${config} "${CMAKE_CXX_FLAGS_${config}} /GL")
-        set(CMAKE_EXE_LINKER_FLAGS_${config} "${CMAKE_EXE_LINKER_FLAGS_${config}} /LTCG")
-    endforeach()
-endif()
-
-add_executable(bench
-    ${PROJECT_FILES}
-    ${PROJECT_SOURCE_DIR}/include/boost/json.hpp
-    ${PROJECT_SOURCE_DIR}/include/boost/pilfer.hpp
-    ${PROJECT_SOURCE_DIR}/src/src.cpp
+source_group(TREE ${CMAKE_SOURCE_DIR}/include/boost PREFIX "" FILES ${BOOST_JSON_HEADERS})
+source_group("" FILES
     Jamfile
     bench.cpp
 )
 
-target_link_libraries(bench PRIVATE Threads::Threads)
+add_executable(bench
+    ${BOOST_JSON_HEADERS}
+    Jamfile
+    bench.cpp
+)
+
+target_include_directories(bench PRIVATE ../test)
+target_link_libraries(bench PRIVATE boost_json)
 
 add_test(json-tests json-tests)

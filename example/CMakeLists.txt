@@ -7,22 +7,22 @@
 # Official repository: https://github.com/vinniefalco/json
 #
 
-GroupSources(example "/")
-
-source_group(src FILES ${PROJECT_SOURCE_DIR}/src/src.cpp)
+source_group("" FILES
+    file.hpp
+    pretty.cpp
+    validate.cpp
+)
 
 add_executable(pretty
-    ${PROJECT_SOURCE_DIR}/src/src.cpp
     file.hpp
     pretty.cpp
 )
 set_property(TARGET pretty PROPERTY FOLDER "example")
-target_link_libraries(pretty PRIVATE Threads::Threads)
+target_link_libraries(pretty PRIVATE boost_json)
 
 add_executable(validate
-    ${PROJECT_SOURCE_DIR}/src/src.cpp
     file.hpp
     validate.cpp
 )
 set_property(TARGET validate PROPERTY FOLDER "example")
-target_link_libraries(validate PRIVATE Threads::Threads)
+target_link_libraries(validate PRIVATE boost_json)

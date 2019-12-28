@@ -1,8 +1,7 @@
 {
   "environments": [
     {
-      "BuildDir": "${projectDir}\\out",
-      "Verbose": "OFF"
+      "BuildDir": "${projectDir}\\out"
     }
   ],
   "configurations": [
@@ -12,13 +11,8 @@
       "configurationType": "Debug",
       "inheritEnvironments": [ "msvc_x64" ],
       "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
-      "buildRoot": "${env.BuildDir}\\${name}",
-      "variables": [
-        {
-          "name": "CMAKE_VERBOSE_MAKEFILE",
-          "value": "${env.Verbose}"
-        }
-      ]
+      "cmakeToolchain": "${projectDir}\\cmake\\toolchains\\msvc.cmake",
+      "buildRoot": "${env.BuildDir}\\${name}"
     },
     {
       "name": "x64-MinSizeRel",
@@ -26,13 +20,8 @@
       "configurationType": "MinSizeRel",
       "inheritEnvironments": [ "msvc_x64" ],
       "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
-      "buildRoot": "${env.BuildDir}\\${name}",
-      "variables": [
-        {
-          "name": "CMAKE_VERBOSE_MAKEFILE",
-          "value": "${env.Verbose}"
-        }
-      ]
+      "cmakeToolchain": "${projectDir}\\cmake\\toolchains\\msvc.cmake",
+      "buildRoot": "${env.BuildDir}\\${name}"
     },
     {
       "name": "x64-Release",
@@ -40,13 +29,8 @@
       "configurationType": "Release",
       "inheritEnvironments": [ "msvc_x64" ],
       "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
-      "buildRoot": "${env.BuildDir}\\${name}",
-      "variables": [
-        {
-          "name": "CMAKE_VERBOSE_MAKEFILE",
-          "value": "${env.Verbose}"
-        }
-      ]
+      "cmakeToolchain": "${projectDir}\\cmake\\toolchains\\msvc.cmake",
+      "buildRoot": "${env.BuildDir}\\${name}"
     },
     {
       "name": "x64-RelWithDebInfo",
@@ -54,13 +38,8 @@
       "configurationType": "RelWithDebInfo",
       "inheritEnvironments": [ "msvc_x64" ],
       "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
-      "buildRoot": "${env.BuildDir}\\${name}",
-      "variables": [
-        {
-          "name": "CMAKE_VERBOSE_MAKEFILE",
-          "value": "${env.Verbose}"
-        }
-      ]
+      "cmakeToolchain": "${projectDir}\\cmake\\toolchains\\msvc.cmake",
+      "buildRoot": "${env.BuildDir}\\${name}"
     },
     {
       "name": "x86-Debug",
@@ -68,13 +47,8 @@
       "configurationType": "Debug",
       "inheritEnvironments": [ "msvc_x86" ],
       "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
-      "buildRoot": "${env.BuildDir}\\${name}",
-      "variables": [
-        {
-          "name": "CMAKE_VERBOSE_MAKEFILE",
-          "value": "${env.Verbose}"
-        }
-      ]
+      "cmakeToolchain": "${projectDir}\\cmake\\toolchains\\msvc.cmake",
+      "buildRoot": "${env.BuildDir}\\${name}"
     },
     {
       "name": "x86-MinSizeRel",
@@ -82,13 +56,8 @@
       "configurationType": "MinSizeRel",
       "inheritEnvironments": [ "msvc_x86" ],
       "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
-      "buildRoot": "${env.BuildDir}\\${name}",
-      "variables": [
-        {
-          "name": "CMAKE_VERBOSE_MAKEFILE",
-          "value": "${env.Verbose}"
-        }
-      ]
+      "cmakeToolchain": "${projectDir}\\cmake\\toolchains\\msvc.cmake",
+      "buildRoot": "${env.BuildDir}\\${name}"
     },
     {
       "name": "x86-Release",
@@ -96,13 +65,8 @@
       "configurationType": "Release",
       "inheritEnvironments": [ "msvc_x86" ],
       "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
-      "buildRoot": "${env.BuildDir}\\${name}",
-      "variables": [
-        {
-          "name": "CMAKE_VERBOSE_MAKEFILE",
-          "value": "${env.Verbose}"
-        }
-      ]
+      "cmakeToolchain": "${projectDir}\\cmake\\toolchains\\msvc.cmake",
+      "buildRoot": "${env.BuildDir}\\${name}"
     },
     {
       "name": "x86-RelWithDebInfo",
@@ -110,13 +74,8 @@
       "configurationType": "RelWithDebInfo",
       "inheritEnvironments": [ "msvc_x86" ],
       "cmakeExecutable": "C:\\Program Files\\CMake\\bin\\cmake.exe",
-      "buildRoot": "${env.BuildDir}\\${name}",
-      "variables": [
-        {
-          "name": "CMAKE_VERBOSE_MAKEFILE",
-          "value": "${env.Verbose}"
-        }
-      ]
+      "cmakeToolchain": "${projectDir}\\cmake\\toolchains\\msvc.cmake",
+      "buildRoot": "${env.BuildDir}\\${name}"
     }
   ]
 }
