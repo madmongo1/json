@@ -12,6 +12,15 @@ cmake_minimum_required(VERSION 3.5...3.16)
 set(BOOST_JSON_VERSION 1)
 if(BOOST_SUPERPROJECT_VERSION)
     set(BOOST_JSON_VERSION ${BOOST_SUPERPROJECT_VERSION})
+else()
+    option(BOOST_JSON_USE_HUNTER "Force the use of Hunter dependency management" OFF)
+    if (HUNTER_ENABLED OR BOOST_JSON_USE_HUNTER)
+        include(cmake/HunterGate.cmake)
+        HunterGate(
+                URL "https://github.com/cpp-pm/hunter/archive/v0.23.251.tar.gz"
+                SHA1 "5659b15dc0884d4b03dbd95710e6a1fa0fc3258d"
+        )
+    endif()
 endif()
 
 project(boost_json VERSION "${BOOST_JSON_VERSION}" LANGUAGES CXX)
@@ -75,6 +84,11 @@ elseif(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     #
     if(${CMAKE_VERSION} VERSION_LESS 3.16)
         message(FATAL_ERROR "Boost.JSON development requires CMake 3.16 or newer.")
+    endif()
+
+    if (HUNTER_ENABLED)
+        hunter_add_package(Boost COMPONENTS system)
+        set(BOOST_JSON_FIND_BOOST ON)
     endif()
 
     if (BOOST_JSON_FIND_BOOST)
