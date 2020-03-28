@@ -591,18 +591,67 @@ main(
 {
     using namespace boost::json;
     file_list vf;
-    if(argc > 1)
+    bool full = true;
+    bool serialize = true;
+    bool help = false;
+    vf.reserve(argc - 1);
+    auto first = argv + 1;
+    auto last = argv + argc;
+
+    auto usage = [](std::ostream& os)
     {
-        vf.reserve(argc - 1);
-        for(int i = 1; i < argc; ++i)
+        os <<
+            "Usage: bench [options...] <file>...\n"
+            "Options:\n"
+            "  --quick       - perform only pool benchmarks\n"
+            "  --onserialize - skip the serialize benchmarks\n";
+    };
+
+    while(first != last)
+    {
+        if (**first != '-')
+        {
             vf.emplace_back(
-                file_item{argv[i],
-                load_file(argv[i])});
+                file_item{*first,
+                          load_file(*first)});
+            ++first;
+        }
+        else
+        {
+            auto opt = std::string(*first);
+            std::transform(opt.begin(), opt.end(), opt.begin(), [](char ch){
+                return static_cast<char>(
+                    std::tolower(
+                        static_cast<unsigned char>(ch)));
+            });
+            if (opt == "--quick")
+            {
+                full = false;
+            }
+            else if(opt == "--noserialize")
+            {
+                serialize = false;
+            }
+            else if(opt == "--help" || opt == "-?")
+            {
+                usage(std::cout);
+                std::exit(0);
+            }
+            else
+            {
+                std::cerr << "bad option: " << *first << std::endl;
+                usage(std::cerr);
+                std::exit(4);
+            }
+            ++first;
+        }
+
     }
-    else
+
+    if (vf.empty())
     {
-        std::cerr <<
-            "Usage: bench <file>...";
+        usage(std::cerr);
+        std::exit(4);
     }
 
     try
@@ -614,13 +663,17 @@ main(
         //vi.emplace_back(new boost_null_impl);
         //vi.emplace_back(new boost_vec_impl);
         vi.emplace_back(new boost_pool_impl);
-        vi.emplace_back(new boost_default_impl);
+        if(full)
+            vi.emplace_back(new boost_default_impl);
         vi.emplace_back(new rapidjson_memory_impl);
-        vi.emplace_back(new rapidjson_crt_impl);
-        vi.emplace_back(new nlohmann_impl);
+        if(full)
+            vi.emplace_back(new rapidjson_crt_impl);
+        if(full)
+            vi.emplace_back(new nlohmann_impl);
 
         bench("Parse", vf, vi);
-        bench("Serialize", vf, vi);
+        if (serialize)
+            bench("Serialize", vf, vi);
 
         dout << "\n" << strout.str();
     }
