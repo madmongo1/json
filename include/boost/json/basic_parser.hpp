@@ -70,6 +70,8 @@ class basic_parser
     bool more_; // false for final buffer
     bool is_key_;
 
+    struct presult;
+
     inline static bool is_control(char c) noexcept;
     inline static char hex_digit(char c) noexcept;
     inline void reserve();
@@ -79,6 +81,9 @@ class basic_parser
     inline void parse_element(const_stream& cs);
     inline void parse_white(const_stream& cs);
     inline void parse_value(const_stream& cs);
+    struct null_result;
+    inline static null_result parse_null_stateless(const_stream& c2);
+    inline static null_result parse_null_with_state(const_stream& c2, state current_state);
     inline void parse_null(const_stream& cs);
     inline void parse_true(const_stream& cs);
     inline void parse_false(const_stream& cs);

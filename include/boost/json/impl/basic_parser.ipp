@@ -48,6 +48,31 @@ enum class basic_parser::state : char
 
 //----------------------------------------------------------
 
+struct basic_parser::presult
+{
+    explicit presult(int code = 0) : code(code) {}
+    explicit presult(error err)
+    : code(static_cast<int>(code))
+    {
+    }
+
+    explicit presult(basic_parser::state st)
+    : code(static_cast<int>(error::incomplete))
+    , st(st)
+        {
+        }
+
+    int code;
+    state st = state::arr1;
+};
+
+struct basic_parser::null_result : presult
+{
+    using presult::presult;
+};
+
+//----------------------------------------------------------
+
 namespace detail {
 
 /*  References
@@ -320,8 +345,25 @@ parse_value(const_stream& cs)
         switch(*cs)
         {
         case 'n':
-            parse_null(cs);
+        {
+            auto res = parse_null_stateless(cs);
+            if(res.code == 0)
+            {
+                ec_ == error_code();
+                break;
+            }
+            else if(res.code == static_cast<int>(error::incomplete))
+            {
+                ec_ = error::incomplete;
+                if (more_)
+                    suspend(res.st);
+            }
+            else
+            {
+                ec_ = static_cast<error>(res.code);
+            }
             break;
+        }
         case 't':
             parse_true(cs);
             break;
@@ -398,94 +440,91 @@ parse_value(const_stream& cs)
     }
 }
 
+auto
+basic_parser::parse_null_with_state(
+    detail::const_stream& cs,
+    state st) -> null_result
+{
+    switch(st)
+    {
+    case basic_parser::state::nul1:
+        if (BOOST_JSON_LIKELY(cs))
+        {
+            if (BOOST_JSON_UNLIKELY(*cs != 'u'))
+                return null_result(error::syntax);
+            ++cs;
+        }
+        else
+            return null_result(basic_parser::state::nul1);
+    case basic_parser::state::nul2:
+        if (BOOST_JSON_LIKELY(cs))
+        {
+            if (BOOST_JSON_UNLIKELY(*cs != 'l'))
+                return null_result(error::syntax);
+            ++cs;
+        }
+        else
+            return null_result(basic_parser::state::nul2);
+    case basic_parser::state::nul3:
+        if (BOOST_JSON_LIKELY(cs))
+        {
+            if (BOOST_JSON_UNLIKELY(*cs != 'l'))
+                return null_result(error::syntax);
+            ++cs;
+        }
+        else
+            return null_result(basic_parser::state::nul3);
+    }
+    BOOST_ASSERT(!"logic error");
+    return null_result(error::test_failure);
+}
+
+auto
+basic_parser::
+parse_null_stateless(detail::const_stream& cs0) ->
+null_result
+{
+    BOOST_ASSERT(*cs0 == 'n');
+    if(BOOST_JSON_LIKELY(cs0.remain() >= 4))
+    {
+        if(BOOST_JSON_LIKELY(std::memcmp(
+            cs0.data(), "null", 4) == 0))
+        {
+            cs0.skip(4);
+            return null_result(0);
+        }
+        return null_result(error::syntax);
+    }
+
+    // consume leading n
+    ++cs0;
+    return parse_null_with_state(cs0, basic_parser::state::nul1);
+}
+
 void
 basic_parser::
 parse_null(const_stream& cs0)
 {
-    detail::local_const_stream cs(cs0);
-    if(BOOST_JSON_LIKELY(st_.empty()))
-    {
-        BOOST_ASSERT(*cs == 'n');
-        if(BOOST_JSON_LIKELY(cs.remain() >= 4))
-        {
-            if(BOOST_JSON_LIKELY(std::memcmp(
-                cs.data(), "null", 4) == 0))
-            {
-                this->on_null(ec_);
-                if(BOOST_JSON_LIKELY(! ec_))
-                    cs.skip(4);
-                return;
-            }
-            ec_ = error::syntax;
-            return;
-        }
-        ++cs;
-    }
-    else
+    auto pop = [this]()
     {
         state st;
         st_.pop(st);
-        switch(st)
-        {
-        default:
-        case state::nul1: goto do_nul1;
-        case state::nul2: goto do_nul2;
-        case state::nul3: goto do_nul3;
-        }
-    }
-do_nul1:
-    if(BOOST_JSON_LIKELY(cs))
+        return st;
+    };
+
+    auto result = st_.empty() ? parse_null_stateless(cs0) : parse_null_with_state(cs0, pop());
+    switch(result.code)
     {
-        if(BOOST_JSON_UNLIKELY(
-            *cs != 'u'))
-        {
-            ec_ = error::syntax;
-            return;
-        }
-        ++cs;
-    }
-    else
-    {
-        if(BOOST_JSON_LIKELY(more_))
-            suspend(state::nul1);
+    case 0:
+        ec_ = error_code();
+        break;
+    case static_cast<int>(error::incomplete):
+        if (more_)
+            suspend(result.st);
         ec_ = error::incomplete;
         return;
-    }
-do_nul2:
-    if(BOOST_JSON_LIKELY(cs))
-    {
-        if(BOOST_JSON_UNLIKELY(
-            *cs != 'l'))
-        {
-            ec_ = error::syntax;
-            return;
-        }
-        ++cs;
-    }
-    else
-    {
-        if(BOOST_JSON_LIKELY(more_))
-            suspend(state::nul2);
-        ec_ = error::incomplete;
-        return;
-    }
-do_nul3:
-    if(BOOST_JSON_LIKELY(cs))
-    {
-        if(BOOST_JSON_UNLIKELY(
-            *cs != 'l'))
-        {
-            ec_ = error::syntax;
-            return;
-        }
-        ++cs;
-    }
-    else
-    {
-        if(BOOST_JSON_LIKELY(more_))
-            suspend(state::nul3);
-        ec_ = error::incomplete;
-        return;
+    default:
+        ec_ = static_cast<error>(result.code);
     }
     this->on_null(ec_);
 }
