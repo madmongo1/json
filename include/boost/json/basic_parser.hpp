@@ -80,6 +80,8 @@ class basic_parser
     inline void suspend(state st, number const& num);
     inline void parse_element(const_stream& cs);
     inline void parse_white(const_stream& cs);
+    inline static presult parse_white2(const_stream& cs);
+    inline void parse_value_no_state(const_stream& cs);
     inline void parse_value(const_stream& cs);
     struct null_result;
     inline static null_result parse_null_stateless(const_stream& c2);

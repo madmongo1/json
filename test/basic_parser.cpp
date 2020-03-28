@@ -874,6 +874,7 @@ public:
     void
     run()
     {
+        good("[]");
         testNull();
         testBoolean();
         testString();

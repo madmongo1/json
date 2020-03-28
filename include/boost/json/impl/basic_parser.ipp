@@ -50,20 +50,45 @@ enum class basic_parser::state : char
 
 struct basic_parser::presult
 {
-    explicit presult(int code = 0) : code(code) {}
-    explicit presult(error err)
-    : code(static_cast<int>(code))
+    explicit presult(int code = 0)
+    : code_(code)
     {
     }
 
-    explicit presult(basic_parser::state st)
-    : code(static_cast<int>(error::incomplete))
-    , st(st)
-        {
-        }
+    explicit presult(error err)
+    : code_(static_cast<int>(err))
+    {
+    }
 
-    int code;
-    state st = state::arr1;
+    explicit presult(state st)
+    : code_(static_cast<int>(error::incomplete))
+    , st_(st)
+    {
+    }
+
+    constexpr int get_code() const { return code_; }
+
+    constexpr state get_state() const
+    {
+        BOOST_ASSERT(incomplete());
+        return st_;
+    }
+
+    constexpr bool good() const {
+        return code_ == 0;
+    }
+
+    constexpr bool incomplete() const {
+        return code_ == static_cast<int>(error::incomplete);
+    }
+
+    error_code get_error() const {
+        return good() ? error_code() : static_cast<error>(code_);
+    }
+
+private:
+    int code_;
+    state st_ = state::arr1;
 };
 
 struct basic_parser::null_result : presult
@@ -336,53 +361,62 @@ parse_white(const_stream& cs)
     }
 }
 
+auto
+basic_parser::
+parse_white2(const_stream& cs) -> presult
+{
+    char const * p = cs.data();
+    std::size_t n = cs.remain();
+
+    std::size_t n2 = detail::count_whitespace( p, n );
+    cs.skip( n2 );
+
+    return n2 == n ? presult(error::incomplete) : presult();
+}
+
+
+ auto basic_parser::parse_value_no_state(const_stream& cs) -> void
+{
+    switch(*cs)
+    {
+    case 'n':
+    {
+        auto res = parse_null_stateless(cs);
+        ec_ = res.get_error();
+        if(res.good())
+            this->on_null(ec_);
+        else if(res.incomplete() && more_)
+            suspend(res.get_state());
+        break;
+    }
+    case 't':
+        parse_true(cs);
+        break;
+    case 'f':
+        parse_false(cs);
+        break;
+    case '\x22': // '"'
+        parse_string(cs);
+        break;
+    case '{':
+        parse_object(cs);
+        break;
+    case '[':
+        parse_array(cs);
+        break;
+    default:
+        parse_number(cs);
+        break;
+    }
+}
+
 void
 basic_parser::
 parse_value(const_stream& cs)
 {
     if(BOOST_JSON_LIKELY(st_.empty()))
     {
-        switch(*cs)
-        {
-        case 'n':
-        {
-            auto res = parse_null_stateless(cs);
-            if(res.code == 0)
-            {
-                ec_ == error_code();
-                break;
-            }
-            else if(res.code == static_cast<int>(error::incomplete))
-            {
-                ec_ = error::incomplete;
-                if (more_)
-                    suspend(res.st);
-            }
-            else
-            {
-                ec_ = static_cast<error>(res.code);
-            }
-            break;
-        }
-        case 't':
-            parse_true(cs);
-            break;
-        case 'f':
-            parse_false(cs);
-            break;
-        case '\x22': // '"'
-            parse_string(cs);
-            break;
-        case '{':
-            parse_object(cs);
-            break;
-        case '[':
-            parse_array(cs);
-            break;
-        default:
-            parse_number(cs);
-            break;
-        }
+        parse_value_no_state(cs);
     }
     else
     {
@@ -475,8 +509,7 @@ basic_parser::parse_null_with_state(
         else
             return null_result(basic_parser::state::nul3);
     }
-    BOOST_ASSERT(!"logic error");
-    return null_result(error::test_failure);
+    return null_result();
 }
 
 auto
@@ -513,19 +546,14 @@ parse_null(const_stream& cs0)
     };
 
     auto result = st_.empty() ? parse_null_stateless(cs0) : parse_null_with_state(cs0, pop());
-    switch(result.code)
+    ec_ = result.get_error();
+    if (result.incomplete() && more_)
     {
-    case 0:
-        ec_ = error_code();
-        break;
-    case static_cast<int>(error::incomplete):
         if (more_)
-            suspend(result.st);
-        ec_ = error::incomplete;
-        return;
-    default:
-        ec_ = static_cast<error>(result.code);
+            suspend(result.get_state());
     }
+    else if (!result.good())
+        return;
     this->on_null(ec_);
 }
 
@@ -1497,14 +1525,15 @@ parse_array(const_stream& cs0)
         }
     }
 do_arr1:
-    parse_white(cs);
-    if(BOOST_JSON_UNLIKELY(ec_))
     {
-        BOOST_ASSERT(ec_ ==
-            error::incomplete);
-        if(more_)
-            suspend(state::arr1, n);
-        return;
+        auto res = parse_white2(cs);
+        if (BOOST_JSON_UNLIKELY(!res.good()))
+        {
+            ec_ = res.get_error();
+            if (res.incomplete() && more_)
+                suspend(res.get_state());
+            return;
+        }
     }
     c = *cs;
     if(c == ']')
@@ -1517,7 +1546,7 @@ do_arr1:
     for(;;)
     {
 do_arr2:
-        parse_value(cs);
+        parse_value_no_state(cs);
         if(BOOST_JSON_UNLIKELY(ec_))
         {
             if(more_ && ec_ ==
