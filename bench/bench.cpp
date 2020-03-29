@@ -92,6 +92,11 @@ std::string
 load_file(char const* path)
 {
     FILE* f = fopen(path, "rb");
+    if (!f)
+    {
+        std::cerr << "error: failed to open file: " << path << std::endl;
+        std::exit(errno);
+    }
     fseek(f, 0, SEEK_END);
     auto const size = ftell(f);
     std::string s;
