@@ -428,7 +428,7 @@ public:
 
 class boost_null_impl : public any_impl
 {
-    struct null_parser : basic_parser
+    struct null_parser final : basic_parser
     {
         null_parser() {}
         ~null_parser() {}
@@ -598,7 +598,7 @@ struct nlohmann_impl : public any_impl
 using namespace boost::json;
 
 std::string s_tests = "ps";
-std::string s_impls = "bdrcn";
+std::string s_impls = "bdrcn0";
 std::size_t s_trials = 6;
 
 static bool parse_option( char const * s )
@@ -677,6 +677,10 @@ static bool add_impl( impl_list & vi, char impl )
         vi.emplace_back(new nlohmann_impl);
         break;
 
+    case '0':
+        vi.emplace_back(new boost_null_impl);
+        break;
+
     default:
 
         std::cerr << "Unknown implementation: '" << impl << "'\n";
@@ -719,16 +723,17 @@ main(
         std::cerr <<
             "Usage: bench [options...] <file>...\n"
             "\n"
-            "Options:  -t:[p][s]            Test parsing, serialization or both\n"
+            "Options:  -t:[p][s]             Test parsing, serialization or both\n"
 			"                                 (default both)\n"
-            "          -i:[b][d][r][c][n]   Test the specified implementations\n"
+            "          -i:[b][d][r][c][n][0] Test the specified implementations\n"
             "                                 (b: Boost.JSON, pool storage)\n"
             "                                 (d: Boost.JSON, default storage)\n"
             "                                 (r: RapidJSON, memory storage)\n"
             "                                 (c: RapidJSON, CRT storage)\n"
             "                                 (n: nlohmann/json)\n"
+            "                                 (0: Boost.JSON, null handler)\n"
 			"                                 (default all)\n"
-            "          -n:<number>          Number of trials (default 6)\n"
+            "          -n:<number>           Number of trials (default 6)\n"
         ;
 
         return 4;
