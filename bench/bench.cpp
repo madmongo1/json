@@ -32,6 +32,7 @@
 #include <vector>
 
 #include "test_suite.hpp"
+#include "replay_handler.hpp"
 
 /*  References
 
