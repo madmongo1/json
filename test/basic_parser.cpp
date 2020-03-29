@@ -171,6 +171,7 @@ public:
             {
                 for(std::size_t j = 1;;++j)
                 {
+                    BOOST_TEST_CHECKPOINT();
                     error_code ec;
                     fail_parser p(j);
                     p.write(s.data(), i, ec);
@@ -874,7 +875,6 @@ public:
     void
     run()
     {
-        good("[]");
         testNull();
         testBoolean();
         testString();

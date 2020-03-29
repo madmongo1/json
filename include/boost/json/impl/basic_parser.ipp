@@ -30,6 +30,8 @@ namespace json {
 
 enum class basic_parser::state : char
 {
+    initial,
+
     ele1, ele2, ele3,
     nul1, nul2, nul3,
     tru1, tru2, tru3,
@@ -48,53 +50,67 @@ enum class basic_parser::state : char
 
 //----------------------------------------------------------
 
-struct basic_parser::presult
+template <>
+struct basic_parser::state_checker<false>
 {
-    explicit presult(int code = 0)
-    : code_(code)
+    bool has_state(basic_parser const* self) const
     {
+        BOOST_ASSERT(self->st_.empty());
+        return false;
     }
 
-    explicit presult(error err)
-    : code_(static_cast<int>(err))
+    basic_parser::state pop_state(basic_parser* self) const
     {
+        return state::initial;
     }
 
-    explicit presult(state st)
-    : code_(static_cast<int>(error::incomplete))
-    , st_(st)
+    basic_parser::state peek_state(basic_parser* self) const
     {
+        return state::initial;
     }
 
-    constexpr int get_code() const { return code_; }
-
-    constexpr state get_state() const
+    std::size_t pop_count(basic_parser* self) const
     {
-        BOOST_ASSERT(incomplete());
-        return st_;
+        return 0;
     }
-
-    constexpr bool good() const {
-        return code_ == 0;
-    }
-
-    constexpr bool incomplete() const {
-        return code_ == static_cast<int>(error::incomplete);
-    }
-
-    error_code get_error() const {
-        return good() ? error_code() : static_cast<error>(code_);
-    }
-
-private:
-    int code_;
-    state st_ = state::arr1;
 };
 
-struct basic_parser::null_result : presult
+template <>
+struct basic_parser::state_checker<true>
 {
-    using presult::presult;
+    bool has_state(basic_parser const* self) const
+    {
+        return !self->st_.empty();
+    }
+
+    basic_parser::state pop_state(basic_parser* self) const
+    {
+        BOOST_ASSERT(has_state(self));
+        state result;
+        self->st_.pop(result);
+        return result;
+    }
+
+    basic_parser::state peek_state(basic_parser* self) const
+    {
+        state result = state::initial;
+
+        if (!self->st_.empty())
+            self->st_.peek(result);
+
+        return result;
+    }
+
+
+    std::size_t pop_count(basic_parser* self) const
+    {
+        BOOST_ASSERT(has_state(self));
+        std::size_t result;
+        self->st_.pop(result);
+        return result;
+    }
 };
+
 
 //----------------------------------------------------------
 
@@ -363,65 +379,61 @@ parse_white(const_stream& cs)
 
 auto
 basic_parser::
-parse_white2(const_stream& cs) -> presult
+parse_white2(const_stream& cs, error_code& ec) -> bool
 {
+    BOOST_ASSERT(!ec.failed());
     char const * p = cs.data();
     std::size_t n = cs.remain();
 
     std::size_t n2 = detail::count_whitespace( p, n );
     cs.skip( n2 );
 
-    return n2 == n ? presult(error::incomplete) : presult();
+    if (n2 == n)
+    {
+        ec = error::incomplete;
+        return false;
+    }
+    else
+        return true;
 }
 
 
- auto basic_parser::parse_value_no_state(const_stream& cs) -> void
-{
-    switch(*cs)
-    {
-    case 'n':
-    {
-        auto res = parse_null_stateless(cs);
-        ec_ = res.get_error();
-        if(res.good())
-            this->on_null(ec_);
-        else if(res.incomplete() && more_)
-            suspend(res.get_state());
-        break;
-    }
-    case 't':
-        parse_true(cs);
-        break;
-    case 'f':
-        parse_false(cs);
-        break;
-    case '\x22': // '"'
-        parse_string(cs);
-        break;
-    case '{':
-        parse_object(cs);
-        break;
-    case '[':
-        parse_array(cs);
-        break;
-    default:
-        parse_number(cs);
-        break;
-    }
-}
-
-void
+template<bool StatePossible>
+bool
 basic_parser::
-parse_value(const_stream& cs)
+parse_value_impl(const_stream& cs)
 {
-    if(BOOST_JSON_LIKELY(st_.empty()))
+    auto state_check = state_checker<StatePossible>();
+    auto st = state_check.peek_state(this);
+    if (st == state::initial)
     {
-        parse_value_no_state(cs);
+        switch(*cs)
+        {
+        case 'n':
+            parse_null_impl<false>(cs);
+            break;
+        case 't':
+            parse_true(cs);
+            break;
+        case 'f':
+            parse_false(cs);
+            break;
+        case '\x22': // '"'
+            parse_string(cs);
+            break;
+        case '{':
+            parse_object(cs);
+            break;
+        case '[':
+            parse_array_impl<StatePossible>(cs);
+            break;
+        default:
+            parse_number(cs);
+            break;
+        }
     }
     else
     {
-        state st;
-        st_.peek(st);
         switch(st)
         {
         default:
@@ -452,16 +464,16 @@ parse_value(const_stream& cs)
 
         case state::arr1: case state::arr2:
         case state::arr3: case state::arr4:
-            parse_array(cs);
+            parse_array_impl<true>(cs);
             break;
-        
+
         case state::obj1: case state::obj2:
         case state::obj3: case state::obj4:
         case state::obj5: case state::obj6:
         case state::obj7:
             parse_object(cs);
             break;
-        
+
         case state::num1: case state::num2:
         case state::num3: case state::num4:
         case state::num5: case state::num6:
@@ -472,89 +484,106 @@ parse_value(const_stream& cs)
             break;
         }
     }
+    return !ec_.failed();
 }
 
-auto
-basic_parser::parse_null_with_state(
-    detail::const_stream& cs,
-    state st) -> null_result
+void
+basic_parser::
+parse_value(const_stream& cs)
 {
+    if (st_.empty())
+        parse_value_impl<false>(cs);
+    else
+        parse_value_impl<true>(cs);
+}
+
+template<bool StatePossible>
+bool
+basic_parser::parse_null_impl(const_stream& cs)
+{
+    const auto state_check = state_checker<StatePossible>();
+    auto st = state_check.pop_state(this);
+
+    auto exit = [this]{
+        return !ec_.failed();
+    };
+
+    auto syntax_error = [&]{
+        ec_ = error::syntax;
+        return exit();
+    };
+
+    auto suspend_me = [&]
+    {
+        suspend(st);
+        ec_ = error::incomplete;
+        return exit();
+    };
+
+    auto advance = [&](state next_state)
+    {
+        ++cs;
+        st = next_state;
+    };
+
+    auto complete = [&] {
+        ++cs;
+        this->on_null(ec_);
+        return exit();
+    };
+
     switch(st)
     {
-    case basic_parser::state::nul1:
-        if (BOOST_JSON_LIKELY(cs))
+    default:
+    case state::initial:
+        BOOST_ASSERT(*cs == 'n');
+        if(BOOST_JSON_LIKELY(cs.remain() >= 4))
         {
+            if(BOOST_JSON_LIKELY(std::memcmp(
+                cs.data(), "null", 4) == 0))
+            {
+                cs.skip(4);
+                this->on_null(ec_);
+                return exit();
+            }
+            else
+                return syntax_error();
+        }
+        else
+            advance(state::nul1);
+    case state::nul1:
+        if (BOOST_JSON_LIKELY(cs))
             if (BOOST_JSON_UNLIKELY(*cs != 'u'))
-                return null_result(error::syntax);
-            ++cs;
-        }
+                return syntax_error();
+            else
+                advance(state::nul2);
         else
-            return null_result(basic_parser::state::nul1);
-    case basic_parser::state::nul2:
+            return suspend_me();
+    case state::nul2:
         if (BOOST_JSON_LIKELY(cs))
-        {
             if (BOOST_JSON_UNLIKELY(*cs != 'l'))
-                return null_result(error::syntax);
-            ++cs;
-        }
+                return syntax_error();
+            else
+                advance(state::nul3);
         else
-            return null_result(basic_parser::state::nul2);
-    case basic_parser::state::nul3:
+            return suspend_me();
+    case state::nul3:
         if (BOOST_JSON_LIKELY(cs))
-        {
             if (BOOST_JSON_UNLIKELY(*cs != 'l'))
-                return null_result(error::syntax);
-            ++cs;
-        }
+                return syntax_error();
+            else
+                return complete();
         else
-            return null_result(basic_parser::state::nul3);
+            return suspend_me();
     }
-    return null_result();
-}
-
-auto
-basic_parser::
-parse_null_stateless(detail::const_stream& cs0) ->
-null_result
-{
-    BOOST_ASSERT(*cs0 == 'n');
-    if(BOOST_JSON_LIKELY(cs0.remain() >= 4))
-    {
-        if(BOOST_JSON_LIKELY(std::memcmp(
-            cs0.data(), "null", 4) == 0))
-        {
-            cs0.skip(4);
-            return null_result(0);
-        }
-        return null_result(error::syntax);
-    }
-
-    // consume leading n
-    ++cs0;
-    return parse_null_with_state(cs0, basic_parser::state::nul1);
 }
 
 void
 basic_parser::
 parse_null(const_stream& cs0)
 {
-    auto pop = [this]()
-    {
-        state st;
-        st_.pop(st);
-        return st;
-    };
 
-    auto result = st_.empty() ? parse_null_stateless(cs0) : parse_null_with_state(cs0, pop());
-    ec_ = result.get_error();
-    if (result.incomplete() && more_)
-    {
-        if (more_)
-            suspend(result.get_state());
-    }
-    else if (!result.good())
-        return;
-    this->on_null(ec_);
+    st_.empty() ? parse_null_impl<false>(cs0) : parse_null_impl<true>(cs0);
 }
 
 void
@@ -1488,106 +1517,118 @@ do_obj7:
 
 //----------------------------------------------------------
 
-void
-basic_parser::
-parse_array(const_stream& cs0)
+bool basic_parser::incomplete(int code)
 {
-    char c;
-    std::size_t n;
+    return code == static_cast<int>(error::incomplete);
+}
+
+error_code basic_parser::to_error(int code)
+{
+    return code == 0 ? error_code() : static_cast<error>(code);
+}
+
+
+template<bool StateEnabled>
+auto
+basic_parser::parse_array_impl(const_stream& cs0)
+-> void
+{
     detail::local_const_stream cs(cs0);
-    if(BOOST_JSON_LIKELY(st_.empty()))
+
+    auto state_check = state_checker<StateEnabled>();
+    auto st = state_check.pop_state(this);
+    auto n = state_check.pop_count(this);
+
+    auto parse_whitespace = [&]() -> bool
     {
-        BOOST_ASSERT(*cs == '[');
-        if(depth_ >= max_depth_)
+        auto ok = parse_white2(cs, ec_);
+        if (BOOST_JSON_UNLIKELY(!ok))
+        {
+            if (ec_ == error::incomplete && more_)
+                suspend(st, n);
+        }
+        return ok;
+    };
+
+    auto handle_array_end = [&] {
+        this->on_array_end(n, ec_);
+        --depth_;
+        ++cs;
+        return;
+    };
+
+    auto invoke_parse_value = [&]
+    {
+        auto completed = state_check.has_state(this) ? parse_value_impl<true>(cs) : parse_value_impl<false>(cs);
+        if (BOOST_LIKELY(completed))
+            return true;
+        else
+        {
+            if (BOOST_LIKELY(ec_ == error::incomplete && more_))
+                suspend(st, n);
+            return false;
+        }
+    };
+
+    switch(st)
+    {
+    case state::initial:BOOST_ASSERT(*cs == '[');
+        BOOST_ASSERT(n == 0);
+        if (depth_ >= max_depth_)
         {
             ec_ = error::too_deep;
             return;
         }
         this->on_array_begin(ec_);
-        if(BOOST_JSON_UNLIKELY(ec_))
+        if (BOOST_JSON_UNLIKELY(ec_))
             return;
         ++depth_;
         ++cs;
-        n = 0;
-    }
-    else
-    {
-        state st;
-        st_.pop(st);
-        st_.pop(n);
-        switch(st)
+        st = state::arr1;
+        // fallthrough
+    case state::arr1:
+        if (!parse_whitespace()) return;
+        if (*cs == ']') return handle_array_end();
+        // fallthrough
+        for (;;)
         {
-        default:
-        case state::arr1: goto do_arr1;
-        case state::arr2: goto do_arr2;
-        case state::arr3: goto do_arr3;
-        case state::arr4: goto do_arr4;
-        }
-    }
-do_arr1:
-    {
-        auto res = parse_white2(cs);
-        if (BOOST_JSON_UNLIKELY(!res.good()))
-        {
-            ec_ = res.get_error();
-            if (res.incomplete() && more_)
-                suspend(res.get_state());
-            return;
-        }
-    }
-    c = *cs;
-    if(c == ']')
-    {
-        this->on_array_end(n, ec_);
-        --depth_;
-        ++cs;
-        return;
-    }
-    for(;;)
-    {
-do_arr2:
-        parse_value_no_state(cs);
-        if(BOOST_JSON_UNLIKELY(ec_))
-        {
-            if(more_ && ec_ ==
-                error::incomplete)
-                suspend(state::arr2, n);
-            return;
-        }
-        ++n;
-do_arr3:
-        parse_white(cs);
-        if(BOOST_JSON_UNLIKELY(ec_))
-        {
-            BOOST_ASSERT(ec_ ==
-                error::incomplete);
-            if(more_)
-                suspend(state::arr3, n);
-            return;
-        }
-        if(BOOST_JSON_UNLIKELY(*cs != ','))
-        {
-            if(BOOST_JSON_LIKELY(*cs == ']'))
+            st = state::arr2;
+    case state::arr2:
+            if (!invoke_parse_value()) return;
+            ++n;
+            st = state::arr3;
+    case state::arr3:
+            if (!parse_whitespace()) return;
+            if (BOOST_LIKELY(*cs == ','))
+                ++cs;
+            else if(BOOST_LIKELY(*cs == ']'))
             {
                 this->on_array_end(n, ec_);
                 --depth_;
                 ++cs;
                 return;
             }
-            ec_ = error::syntax;
-            return;
-        }
-        ++cs;
-do_arr4:
-        parse_white(cs);
-        if(BOOST_JSON_UNLIKELY(ec_))
-        {
-            BOOST_ASSERT(ec_ ==
-                error::incomplete);
-            if(more_)
-                suspend(state::arr4, n);
-            return;
-        }
+            else
+            {
+                ec_ = error::syntax;
+                return;
+            }
+            st = state::arr4;
+    case state::arr4:
+            if (!parse_whitespace()) return;
+        } // for;;)
+    } // select(st)
+}
+
+void
+basic_parser::
+parse_array(const_stream& cs0)
+{
+    if (st_.empty())
+        return parse_array_impl<false>(cs0);
+    else
+    {
+        return parse_array_impl<true>(cs0);
     }
 }
 

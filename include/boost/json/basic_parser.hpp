@@ -70,7 +70,10 @@ class basic_parser
     bool more_; // false for final buffer
     bool is_key_;
 
-    struct presult;
+    template <bool ExpectState> struct state_checker;
+
+    static bool incomplete(int code);
+    static error_code to_error(int code);
 
     inline static bool is_control(char c) noexcept;
     inline static char hex_digit(char c) noexcept;
@@ -78,20 +81,25 @@ class basic_parser
     inline void suspend(state st);
     inline void suspend(state st, std::size_t n);
     inline void suspend(state st, number const& num);
+    inline state pop_state() { state s; st_.pop(s); return s; }
+    inline std::size_t pop_size() { std::size_t i; st_.pop(i); return i; }
     inline void parse_element(const_stream& cs);
     inline void parse_white(const_stream& cs);
-    inline static presult parse_white2(const_stream& cs);
-    inline void parse_value_no_state(const_stream& cs);
+    inline static bool parse_white2(const_stream& cs, error_code& ec);
+    // return value: true on no error, otherwise false and ec_ will be failed()
+    template <bool StatePossible> bool parse_value_impl(const_stream& c2);
     inline void parse_value(const_stream& cs);
-    struct null_result;
-    inline static null_result parse_null_stateless(const_stream& c2);
-    inline static null_result parse_null_with_state(const_stream& c2, state current_state);
+
+    template<bool StatePossible> bool parse_null_impl(const_stream& cs);
     inline void parse_null(const_stream& cs);
     inline void parse_true(const_stream& cs);
     inline void parse_false(const_stream& cs);
     inline void parse_string(const_stream& cs);
     inline void parse_object(const_stream& cs);
+
+    template<bool StateEnabled> auto parse_array_impl(const_stream& cs0) -> void;
     inline void parse_array(const_stream& cs);
+
     inline void parse_number(const_stream& cs);
 
 public:
