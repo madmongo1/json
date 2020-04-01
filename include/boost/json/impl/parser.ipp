@@ -365,29 +365,19 @@ emplace(Args&&... args)
             sizeof(object::value_type)))
                 object::value_type(
             key, std::forward<Args>(args)...);
-        rs_.add(sizeof(u.v));
-    }
-    else if(lev_.st == state::arr)
-    {
-        // prevent splits from exceptions
-        rs_.prepare(sizeof(value));
-        BOOST_ASSERT((rs_.top() %
-            alignof(value)) == 0);
-        ::new(rs_.behind(sizeof(value))) value(
-            std::forward<Args>(args)...);
-        rs_.add(sizeof(value));
+        rs_.add_unchecked(sizeof(u.v));
     }
     else
     {
-        //BOOST_ASSERT(lev_.st == state::top);
         // prevent splits from exceptions
         rs_.prepare(sizeof(value));
         BOOST_ASSERT((rs_.top() %
             alignof(value)) == 0);
         ::new(rs_.behind(sizeof(value))) value(
             std::forward<Args>(args)...);
-        rs_.add(sizeof(value));
-        lev_.st = state::end; // VFALCO Maybe pre_end
+        rs_.add_unchecked(sizeof(value));
+        if(lev_.st != state::arr)
+            lev_.st = state::end;
     }
     ++lev_.count;
 }
