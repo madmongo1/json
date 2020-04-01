@@ -515,7 +515,12 @@ on_object_end(
     auto uo = pop_object();
     rs_.subtract(lev_.align);
     pop(lev_);
-    emplace(std::move(uo));
+    if(lev_.st == state::key)
+    {
+        emplace_object(std::move(uo));
+        return true;
+    }
+    emplace_array(std::move(uo));
     return true;
 }
 
@@ -553,7 +558,12 @@ on_array_end(
     auto ua = pop_array();
     rs_.subtract(lev_.align);
     pop(lev_);
-    emplace(std::move(ua));
+    if(lev_.st == state::key)
+    {
+        emplace_object(std::move(ua));
+        return true;
+    }
+    emplace_array(std::move(ua));
     return true;
 }
 
@@ -615,25 +625,37 @@ on_string(
     if(str_size_ == 0)
     {
         // fast path
-        emplace(s, sp_);
+        if(lev_.st == state::key)
+        {
+            emplace_object(s, sp_);
+            return true;
+        }
+        emplace_array(s, sp_);
+        return true;
     }
-    else
+
+    string str(sp_);
+    auto const sv =
+        pop_chars(str_size_);
+    str_size_ = 0;
+    str.reserve(
+        sv.size() + s.size());
+    std::memcpy(
+        str.data(),
+        sv.data(), sv.size());
+    std::memcpy(
+        str.data() + sv.size(),
+        s.data(), s.size());
+    str.grow(sv.size() + s.size());
+
+    if(lev_.st == state::key)
     {
-        string str(sp_);
-        auto const sv =
-            pop_chars(str_size_);
-        str_size_ = 0;
-        str.reserve(
-            sv.size() + s.size());
-        std::memcpy(
-            str.data(),
-            sv.data(), sv.size());
-        std::memcpy(
-            str.data() + sv.size(),
-            s.data(), s.size());
-        str.grow(sv.size() + s.size());
-        emplace(std::move(str));
+        emplace_object(
+            std::move(str), sp_);
+        return true;
     }
+    emplace_array(
+        std::move(str), sp_);
     return true;
 }
 
@@ -643,7 +665,12 @@ on_int64(
     int64_t i,
     error_code&)
 {
-    emplace(i, sp_);
+    if(lev_.st == state::key)
+    {
+        emplace_object(i, sp_);
+        return true;
+    }
+    emplace_array(i, sp_);
     return true;
 }
 
@@ -653,7 +680,12 @@ on_uint64(
     uint64_t u,
     error_code&)
 {
-    emplace(u, sp_);
+    if(lev_.st == state::key)
+    {
+        emplace_object(u, sp_);
+        return true;
+    }
+    emplace_array(u, sp_);
     return true;
 }
 
@@ -663,7 +695,12 @@ on_double(
     double d,
     error_code&)
 {
-    emplace(d, sp_);
+    if(lev_.st == state::key)
+    {
+        emplace_object(d, sp_);
+        return true;
+    }
+    emplace_array(d, sp_);
     return true;
 }
 
@@ -672,7 +709,12 @@ parser::
 on_bool(
     bool b, error_code&)
 {
-    emplace(b, sp_);
+    if(lev_.st == state::key)
+    {
+        emplace_object(b, sp_);
+        return true;
+    }
+    emplace_array(b, sp_);
     return true;
 }
 
@@ -681,9 +723,11 @@ parser::
 on_null(error_code&)
 {
     if(lev_.st == state::key)
+    {
         emplace_object(nullptr, sp_);
-    else
-        emplace_array(nullptr, sp_);
+        return true;
+    }
+    emplace_array(nullptr, sp_);
     return true;
 }
 
