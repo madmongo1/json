@@ -55,11 +55,10 @@ enum class parser::state : char
     // These states indicate what is
     // currently at top of the stack.
 
-    top,        // empty top value
+    top,        // top value, constructed if lev_.count==1
     arr,        // empty array value
     obj,        // empty object value
     key,        // complete key
-    end         // complete top value
 };
 
 void
@@ -98,10 +97,25 @@ destroy() noexcept
             break;
 
         case state::top:
-            rs_.subtract(
-                sizeof(value));
-            BOOST_ASSERT(
-                rs_.empty());
+            if(lev_.count > 0)
+            {
+                BOOST_ASSERT(
+                    lev_.count == 1);
+                auto ua =
+                    pop_array();
+                BOOST_ASSERT(
+                    ua.size() == 1);
+                BOOST_ASSERT(
+                    rs_.empty());
+            }
+            else
+            {
+                // never parsed a value
+                rs_.subtract(
+                    sizeof(value));
+                BOOST_ASSERT(
+                    rs_.empty());
+            }
             break;
 
         case state::arr:
@@ -128,18 +142,6 @@ destroy() noexcept
             lev_.st = state::obj;
             break;
         }
-
-        case state::end:
-        {
-            auto ua =
-                pop_array();
-            BOOST_ASSERT(
-                ua.size() == 1);
-            BOOST_ASSERT(
-                rs_.empty());
-            break;
-        }
-
         }
     }
     while(! rs_.empty());
@@ -299,7 +301,8 @@ release()
         BOOST_THROW_EXCEPTION(
             std::logic_error(
                 "no value"));
-    BOOST_ASSERT(lev_.st == state::end);
+    BOOST_ASSERT(lev_.count == 1);
+    BOOST_ASSERT(p_.depth() == 0);
     auto ua = pop_array();
     BOOST_ASSERT(rs_.empty());
     union U
@@ -376,8 +379,6 @@ emplace(Args&&... args)
         ::new(rs_.behind(sizeof(value))) value(
             std::forward<Args>(args)...);
         rs_.add_unchecked(sizeof(value));
-        if(lev_.st != state::arr)
-            lev_.st = state::end;
     }
     ++lev_.count;
 }
