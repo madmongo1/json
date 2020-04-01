@@ -343,44 +343,59 @@ push_chars(string_view s)
 template<class... Args>
 void
 parser::
+emplace_object(Args&&... args)
+{
+    union U
+    {
+        object::value_type v;
+        U(){}
+        ~U(){}
+    };
+    U u;
+    // perform stack reallocation up-front
+    // VFALCO This is more than we need
+    rs_.prepare(sizeof(object::value_type));
+    std::uint32_t key_size;
+    pop(key_size);
+    auto const key =
+        pop_chars(key_size);
+    lev_.st = state::obj;
+    BOOST_ASSERT((rs_.top() %
+        alignof(object::value_type)) == 0);
+    ::new(rs_.behind(
+        sizeof(object::value_type)))
+            object::value_type(
+        key, std::forward<Args>(args)...);
+    rs_.add_unchecked(sizeof(u.v));
+    ++lev_.count;
+}
+
+template<class... Args>
+void
+parser::
+emplace_array(Args&&... args)
+{
+    // prevent splits from exceptions
+    rs_.prepare(sizeof(value));
+    BOOST_ASSERT((rs_.top() %
+        alignof(value)) == 0);
+    ::new(rs_.behind(sizeof(value))) value(
+        std::forward<Args>(args)...);
+    rs_.add_unchecked(sizeof(value));
+    ++lev_.count;
+}
+
+template<class... Args>
+void
+parser::
 emplace(Args&&... args)
 {
     if(lev_.st == state::key)
-    {
-        union U
-        {
-            object::value_type v;
-            U(){}
-            ~U(){}
-        };
-        U u;
-        // perform stack reallocation up-front
-        // VFALCO This is more than we need
-        rs_.prepare(sizeof(object::value_type));
-        std::uint32_t key_size;
-        pop(key_size);
-        auto const key =
-            pop_chars(key_size);
-        lev_.st = state::obj;
-        BOOST_ASSERT((rs_.top() %
-            alignof(object::value_type)) == 0);
-        ::new(rs_.behind(
-            sizeof(object::value_type)))
-                object::value_type(
-            key, std::forward<Args>(args)...);
-        rs_.add_unchecked(sizeof(u.v));
-    }
+        emplace_object(std::forward<
+            Args>(args)...);
     else
-    {
-        // prevent splits from exceptions
-        rs_.prepare(sizeof(value));
-        BOOST_ASSERT((rs_.top() %
-            alignof(value)) == 0);
-        ::new(rs_.behind(sizeof(value))) value(
-            std::forward<Args>(args)...);
-        rs_.add_unchecked(sizeof(value));
-    }
-    ++lev_.count;
+        emplace_array(std::forward<
+            Args>(args)...);
 }
 
 template<class T>
@@ -665,7 +680,10 @@ bool
 parser::
 on_null(error_code&)
 {
-    emplace(nullptr, sp_);
+    if(lev_.st == state::key)
+        emplace_object(nullptr, sp_);
+    else
+        emplace_array(nullptr, sp_);
     return true;
 }
 
