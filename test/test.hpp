@@ -151,127 +151,112 @@ class fail_parser
     std::size_t n_ = std::size_t(-1);
     basic_parser p_;
 
-    bool
-    maybe_fail(error_code& ec)
+    void
+    maybe_fail()
     {
         if(n_ && --n_ > 0)
-            return true;
-        ec = error::test_failure;
-        return false;
+            return;
+        throw json_syntax_error(error::test_failure);
     }
 
-    bool
-    on_document_begin(
-        error_code& ec)
+    void
+    on_document_begin()
     {
-        return maybe_fail(ec);
+        return maybe_fail();
     }
 
-    bool
-    on_document_end(
-        error_code& ec)
+    void
+    on_document_end()
     {
-        return maybe_fail(ec);
+        return maybe_fail();
     }
 
-    bool
-    on_object_begin(
-        error_code& ec)
+    void
+    on_object_begin()
     {
-        return maybe_fail(ec);
+        return maybe_fail();
     }
 
-    bool
+    void
     on_object_end(
-        std::size_t,
-        error_code& ec)
+        std::size_t)
     {
-        return maybe_fail(ec);
+        return maybe_fail();
     }
 
-    bool
-    on_array_begin(
-        error_code& ec)
+    void
+    on_array_begin()
     {
-        return maybe_fail(ec);
+        return maybe_fail();
     }
 
-    bool
+    void
     on_array_end(
-        std::size_t,
-        error_code& ec)
+        std::size_t)
     {
-        return maybe_fail(ec);
+        return maybe_fail();
     }
 
-    bool
+    void
     on_key_part(
-        string_view,
-        error_code& ec)
+        string_view)
     {
-        return maybe_fail(ec);
+        return maybe_fail();
     }
 
-    bool
+    void
     on_key(
-        string_view,
-        error_code& ec)
+        string_view)
     {
-        return maybe_fail(ec);
+        return maybe_fail();
     }
         
-    bool
+    void
     on_string_part(
-        string_view,
-        error_code& ec)
+        string_view)
     {
-        return maybe_fail(ec);
+        return maybe_fail();
     }
 
-    bool
+    void
     on_string(
-        string_view,
-        error_code& ec)
+        string_view)
     {
-        return maybe_fail(ec);
+        return maybe_fail();
     }
 
-    bool
+    void
     on_int64(
-        int64_t,
-        error_code& ec)
+        int64_t)
     {
-        return maybe_fail(ec);
+        return maybe_fail();
     }
 
-    bool
+    void
     on_uint64(
-        uint64_t,
-        error_code& ec)
+        uint64_t)
     {
-        return maybe_fail(ec);
+        return maybe_fail();
     }
 
-    bool
+    void
     on_double(
-        double,
-        error_code& ec)
+        double)
     {
-        return maybe_fail(ec);
+        return maybe_fail();
     }
 
-    bool
+    void
     on_bool(
-        bool,
-        error_code& ec)
+        bool)
     {
-        return maybe_fail(ec);
+        return maybe_fail();
     }
 
-    bool
-    on_null(error_code& ec)
+    void
+    on_null()
     {
-        return maybe_fail(ec);
+        return maybe_fail();
     }
 
 public:
@@ -341,124 +326,110 @@ class throw_parser
     basic_parser p_;
     std::size_t n_ = std::size_t(-1);
 
-    bool
+    void
     maybe_throw()
     {
         if(n_ && --n_ > 0)
-            return true;
+            return;
         throw test_exception{};
     }
 
-    bool
-    on_document_begin(
-        error_code&)
+    void
+    on_document_begin()
     {
         return maybe_throw();
     }
 
-    bool
-    on_document_end(
-        error_code&)
+    void
+    on_document_end()
     {
         return maybe_throw();
     }
 
-    bool
-    on_object_begin(
-        error_code&)
+    void
+    on_object_begin()
     {
         return maybe_throw();
     }
 
-    bool
+    void
     on_object_end(
-        std::size_t,
-        error_code&)
+        std::size_t)
     {
         return maybe_throw();
     }
 
-    bool
-    on_array_begin(
-        error_code&)
+    void
+    on_array_begin()
     {
         return maybe_throw();
     }
 
-    bool
+    void
     on_array_end(
-        std::size_t,
-        error_code&)
+        std::size_t)
     {
         return maybe_throw();
     }
 
-    bool
+    void
     on_key_part(
-        string_view,
-        error_code&)
+        string_view)
     {
         return maybe_throw();
     }
 
-    bool
+    void
     on_key(
-        string_view,
-        error_code&)
+        string_view)
     {
         return maybe_throw();
     }
         
-    bool
+    void
     on_string_part(
-        string_view,
-        error_code&)
+        string_view)
     {
         return maybe_throw();
     }
 
-    bool
+    void
     on_string(
-        string_view,
-        error_code&)
+        string_view)
     {
         return maybe_throw();
     }
 
-    bool
+    void
     on_int64(
-        int64_t,
-        error_code&)
+        int64_t)
     {
         return maybe_throw();
     }
 
-    bool
+    void
     on_uint64(
-        uint64_t,
-        error_code&)
+        uint64_t)
     {
         return maybe_throw();
     }
 
-    bool
+    void
     on_double(
-        double,
-        error_code&)
+        double)
     {
         return maybe_throw();
     }
 
-    bool
+    void
     on_bool(
-        bool,
-        error_code&)
+        bool)
     {
         return maybe_throw();
     }
 
-    bool
-    on_null(error_code&)
+    void
+    on_null()
     {
         return maybe_throw();
     }

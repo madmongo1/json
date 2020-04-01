@@ -591,88 +591,74 @@ private:
         std::size_t size) noexcept;
 
     inline
-    bool
-    on_document_begin(
-        error_code& ec);
+    void
+    on_document_begin();
 
     inline
-    bool
-    on_document_end(
-        error_code& ec);
+    void
+    on_document_end();
 
     inline
-    bool
-    on_object_begin(
-        error_code& ec);
+    void
+    on_object_begin();
 
     inline
-    bool
+    void
     on_object_end(
-        std::size_t n,
-        error_code& ec);
+        std::size_t n);
 
     inline
-    bool
-    on_array_begin(
-        error_code& ec);
+    void
+    on_array_begin();
 
     inline
-    bool
+    void
     on_array_end(
-        std::size_t n,
-        error_code& ec);
+        std::size_t n);
 
     inline
-    bool
+    void
     on_key_part(
-        string_view s,
-        error_code& ec);
+        string_view s);
 
     inline
-    bool
+    void
     on_key(
-        string_view s,
-        error_code& ec);
+        string_view s);
 
     inline
-    bool
+    void
     on_string_part(
-        string_view s,
-        error_code& ec);
+        string_view s);
 
     inline
-    bool
+    void
     on_string(
-        string_view s,
-        error_code& ec);
+        string_view s);
 
     inline
-    bool
+    void
     on_int64(
-        int64_t i,
-        error_code& ec);
+        int64_t i);
 
     inline
-    bool
+    void
     on_uint64(
-        uint64_t u,
-        error_code& ec);
+        uint64_t u);
 
     inline
-    bool
+    void
     on_double(
-        double d,
-        error_code& ec);
+        double d);
 
     inline
-    bool
+    void
     on_bool(
-        bool b,
-        error_code& ec);
+        bool b);
 
     inline
-    bool
-    on_null(error_code&);
+    void
+    on_null();
 };
 
 //----------------------------------------------------------

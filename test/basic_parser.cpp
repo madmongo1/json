@@ -114,21 +114,21 @@ validate( string_view s )
     public:
         null_parser() {}
         ~null_parser() {}
-        bool on_document_begin( error_code& ) { return true; }
-        bool on_document_end( error_code& ) { return true; }
-        bool on_object_begin( error_code& ) { return true; }
-        bool on_object_end( std::size_t, error_code& ) { return true; }
-        bool on_array_begin( error_code& ) { return true; }
-        bool on_array_end( std::size_t, error_code& ) { return true; }
-        bool on_key_part( string_view, error_code& ) { return true; }
-        bool on_key( string_view, error_code& ) { return true; }
-        bool on_string_part( string_view, error_code& ) { return true; }
-        bool on_string( string_view, error_code& ) { return true; }
-        bool on_int64( std::int64_t, error_code& ) { return true; }
-        bool on_uint64( std::uint64_t, error_code& ) { return true; }
-        bool on_double( double, error_code& ) { return true; }
-        bool on_bool( bool, error_code& ) { return true; }
-        bool on_null( error_code& ) { return true; }
+        void on_document_begin(  ) {  }
+        void on_document_end(  ) {  }
+        void on_object_begin(  ) {  }
+        void on_object_end( std::size_t) {  }
+        void on_array_begin(  ) {  }
+        void on_array_end( std::size_t) {  }
+        void on_key_part( string_view) {  }
+        void on_key( string_view) {  }
+        void on_string_part( string_view) {  }
+        void on_string( string_view) {  }
+        void on_int64( std::int64_t) {  }
+        void on_uint64( std::uint64_t) {  }
+        void on_double( double) {  }
+        void on_bool( bool) {  }
+        void on_null(  ) {  }
         
         bool
         is_done() const noexcept
@@ -604,9 +604,9 @@ public:
 
         // is_done()
 
+        check("{}x", true);
         check("{}", false);
         check("{} ", false);
-        check("{}x", true);
         check("{} x", true);
 
         check("[]", false);
@@ -780,13 +780,13 @@ public:
     void
     run()
     {
+        testParser();
         testNull();
         testBoolean();
         testString();
         testNumber();
         testArray();
         testObject();
-        testParser();
         testMembers();
         testParseVectors();
         testIssue13();

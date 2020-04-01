@@ -402,6 +402,9 @@ enum class error
 
     /// test failure
     test_failure,
+
+    /// the handler threw an exception
+    handler_error = test_failure
 };
 
 /** Error conditions corresponding to JSON errors

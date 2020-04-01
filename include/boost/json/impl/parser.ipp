@@ -448,16 +448,12 @@ pop_chars(
 
 //----------------------------------------------------------
 
-bool
+void
 parser::
-on_document_begin(
-    error_code& ec)
+on_document_begin()
 {
     if(lev_.st == state::need_start)
-    {
-        ec = error::need_start;
-        return false;
-    }
+        throw json_syntax_error(error::need_start);
 
     lev_.count = 0;
     lev_.align = 0;
@@ -468,27 +464,21 @@ on_document_begin(
     // inside a notional 1-element array.
     rs_.add(sizeof(value));
     lev_.st = state::top;
-
-    return true;
 }
 
-bool
+void
 parser::
-on_document_end(error_code&)
+on_document_end()
 {
     BOOST_ASSERT(lev_.count == 1);
-    return true;
 }
 
-bool
+void
 parser::
-on_object_begin(error_code& ec)
+on_object_begin()
 {
     if(p_.depth() >= max_depth_)
-    {
-        ec = error::too_deep;
-        return false;
-    }
+        throw json_syntax_error(error::too_deep);
     // prevent splits from exceptions
     rs_.prepare(
         sizeof(level) +
@@ -501,14 +491,12 @@ on_object_begin(error_code& ec)
         object::value_type));
     lev_.count = 0;
     lev_.st = state::obj;
-    return true;
 }
 
-bool
+void
 parser::
 on_object_end(
-    std::size_t,
-    error_code&)
+    std::size_t)
 {
     BOOST_ASSERT(
         lev_.st == state::obj);
@@ -516,23 +504,18 @@ on_object_end(
     rs_.subtract(lev_.align);
     pop(lev_);
     if(lev_.st == state::key)
-    {
         emplace_object(std::move(uo));
-        return true;
-    }
-    emplace_array(std::move(uo));
-    return true;
+    else
+        emplace_array(std::move(uo));
 }
 
-bool
+void
 parser::
-on_array_begin(error_code& ec)
+on_array_begin()
 {
     if(p_.depth() >= max_depth_)
-    {
-        ec = error::too_deep;
-        return false;
-    }
+        throw json_syntax_error(error::too_deep);
+
     // prevent splits from exceptions
     rs_.prepare(
         sizeof(level) +
@@ -544,14 +527,12 @@ on_array_begin(error_code& ec)
     rs_.add(sizeof(value));
     lev_.count = 0;
     lev_.st = state::arr;
-    return true;
 }
 
-bool
+void
 parser::
 on_array_end(
-    std::size_t,
-    error_code&)
+    std::size_t)
 {
     BOOST_ASSERT(
         lev_.st == state::arr);
@@ -559,19 +540,15 @@ on_array_end(
     rs_.subtract(lev_.align);
     pop(lev_);
     if(lev_.st == state::key)
-    {
         emplace_object(std::move(ua));
-        return true;
-    }
-    emplace_array(std::move(ua));
-    return true;
+    else
+        emplace_array(std::move(ua));
 }
 
-bool
+void
 parser::
 on_key_part(
-    string_view s,
-    error_code&)
+    string_view s)
 {
     if( s.size() >
         string::max_size() - key_size_)
@@ -579,30 +556,25 @@ on_key_part(
     push_chars(s);
     key_size_ += static_cast<
         std::uint32_t>(s.size());
-    return true;
 }
 
-bool
+void
 parser::
 on_key(
-    string_view s,
-    error_code& ec)
+    string_view s)
 {
     BOOST_ASSERT(
         lev_.st == state::obj);
-    if(! on_key_part(s, ec))
-        return false;
+    on_key_part(s);
     push(key_size_);
     key_size_ = 0;
     lev_.st = state::key;
-    return true;
 }
 
-bool
+void
 parser::
 on_string_part(
-    string_view s,
-    error_code&)
+    string_view s)
 {
     if( s.size() >
         string::max_size() - str_size_)
@@ -610,14 +582,12 @@ on_string_part(
     push_chars(s);
     str_size_ += static_cast<
         std::uint32_t>(s.size());
-    return true;
 }
 
-bool
+void
 parser::
 on_string(
-    string_view s,
-    error_code&)
+    string_view s)
 {
     if( s.size() >
         string::max_size() - str_size_)
@@ -626,12 +596,10 @@ on_string(
     {
         // fast path
         if(lev_.st == state::key)
-        {
             emplace_object(s, sp_);
-            return true;
-        }
-        emplace_array(s, sp_);
-        return true;
+        else
+            emplace_array(s, sp_);
+        return;
     }
 
     string str(sp_);
@@ -649,86 +617,75 @@ on_string(
     str.grow(sv.size() + s.size());
 
     if(lev_.st == state::key)
-    {
         emplace_object(
             std::move(str), sp_);
-        return true;
-    }
-    emplace_array(
-        std::move(str), sp_);
-    return true;
+    else
+        emplace_array(
+            std::move(str), sp_);
 }
 
-bool
+void
 parser::
 on_int64(
-    int64_t i,
-    error_code&)
+    int64_t i)
 {
     if(lev_.st == state::key)
     {
         emplace_object(i, sp_);
-        return true;
     }
-    emplace_array(i, sp_);
-    return true;
+    else
+        emplace_array(i, sp_);
 }
 
-bool
+void
 parser::
 on_uint64(
-    uint64_t u,
-    error_code&)
+    uint64_t u)
 {
     if(lev_.st == state::key)
     {
         emplace_object(u, sp_);
-        return true;
     }
-    emplace_array(u, sp_);
-    return true;
+    else
+        emplace_array(u, sp_);
 }
 
-bool
+void
 parser::
 on_double(
-    double d,
-    error_code&)
+    double d)
 {
     if(lev_.st == state::key)
     {
         emplace_object(d, sp_);
-        return true;
     }
-    emplace_array(d, sp_);
-    return true;
+    else
+        emplace_array(d, sp_);
 }
 
-bool
+void
 parser::
 on_bool(
-    bool b, error_code&)
+    bool b)
 {
     if(lev_.st == state::key)
     {
         emplace_object(b, sp_);
-        return true;
     }
-    emplace_array(b, sp_);
-    return true;
+    else
+        emplace_array(b, sp_);
 }
 
-bool
+void
 parser::
-on_null(error_code&)
+on_null()
 {
     if(lev_.st == state::key)
     {
         emplace_object(nullptr, sp_);
-        return true;
     }
-    emplace_array(nullptr, sp_);
-    return true;
+    else
+        emplace_array(nullptr, sp_);
 }
 
 //----------------------------------------------------------

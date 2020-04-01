@@ -21,6 +21,55 @@
 namespace boost {
 namespace json {
 
+struct json_error_result : std::exception
+{
+    virtual error_code code() const = 0;
+};
+
+struct json_incomplete final : json_error_result
+{
+    const char* what() const noexcept override
+    {
+        return "json incomplete";
+    }
+
+    error_code code() const override
+    {
+        return error::incomplete;
+    }
+
+};
+
+struct json_syntax_error final : json_error_result
+{
+    json_syntax_error(error e = error::syntax)
+    : code_(e)
+    {
+    }
+
+    const char* what() const noexcept override
+    {
+        static thread_local std::string buf;
+        try
+        {
+            buf = code().message();
+            return buf.c_str();
+        }
+        catch(...)
+        {
+            return "unable to build message";
+        }
+    }
+
+    error_code code() const override
+    {
+        return code_;
+    }
+
+private:
+    error code_;
+};
+
 /** An incremental SAX parser for serialized JSON.
 
     This implements a SAX-style parser. The serialized
@@ -51,13 +100,6 @@ class basic_parser
     enum class state : char;
     using const_stream = detail::const_stream;
 
-    enum result
-    {
-        ok = 0,
-        fail,
-        partial
-    };
-
     struct number
     {
         uint64_t mant;
@@ -85,25 +127,25 @@ class basic_parser
     inline void suspend(state st, number const& num);
     inline bool skip_white(const_stream& cs);
     template<bool StackEmpty, class Handler>
-    inline result parse_element(Handler& h, const_stream& cs);
+    inline void parse_element(Handler& h, const_stream& cs);
     template<bool StackEmpty, class Handler>
-    inline result parse_value(Handler& h, const_stream& cs);
+    inline void parse_value(Handler& h, const_stream& cs);
     template<bool StackEmpty, class Handler>
-    inline result resume_value(Handler& h, const_stream& cs);
+    inline void resume_value(Handler& h, const_stream& cs);
     template<bool StackEmpty, class Handler>
-    inline result parse_null(Handler& h, const_stream& cs);
+    inline void parse_null(Handler& h, const_stream& cs);
     template<bool StackEmpty, class Handler>
-    inline result parse_true(Handler& h, const_stream& cs);
+    inline void parse_true(Handler& h, const_stream& cs);
     template<bool StackEmpty, class Handler>
-    inline result parse_false(Handler& h, const_stream& cs);
+    inline void parse_false(Handler& h, const_stream& cs);
     template<bool StackEmpty, class Handler>
-    inline result parse_string(Handler& h, const_stream& cs);
+    inline void parse_string(Handler& h, const_stream& cs);
     template<bool StackEmpty, class Handler>
-    inline result parse_object(Handler& h, const_stream& cs);
+    inline void parse_object(Handler& h, const_stream& cs);
     template<bool StackEmpty, class Handler>
-    inline result parse_array(Handler& h, const_stream& cs);
+    inline void parse_array(Handler& h, const_stream& cs);
     template<bool StackEmpty, class Handler>
-    inline result parse_number(Handler& h, const_stream& cs);
+    inline void parse_number(Handler& h, const_stream& cs);
 
 public:
     /** Destructor.
