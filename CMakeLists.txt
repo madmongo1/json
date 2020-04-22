@@ -9,14 +9,20 @@
 
 cmake_minimum_required(VERSION 3.5...3.16)
 
+include(cmake/HunterGate.cmake)
+HunterGate(
+        URL "https://github.com/cpp-pm/hunter/archive/v0.23.253.tar.gz"
+        SHA1 "88ea6d37c897a81a080eb9ae0f69d7807bbb3c73"
+)
+
 set(BOOST_JSON_VERSION 1)
 if(BOOST_SUPERPROJECT_VERSION)
     set(BOOST_JSON_VERSION ${BOOST_SUPERPROJECT_VERSION})
 endif()
 
 project(boost_json VERSION "${BOOST_JSON_VERSION}" LANGUAGES CXX)
-
 option(BOOST_JSON_STANDALONE "Build boost::json as a static standalone library" FALSE)
+option(BOOST_JSON_ALLOW_TESTS "Allow the tests, examples and benchmarks to be built" ON)
 
 set(BOOST_JSON_IS_ROOT_PROJECT OFF)
 
@@ -129,6 +135,7 @@ elseif(BOOST_JSON_IS_ROOT_PROJECT)
         target_include_directories(${BOOST_JSON_TARGET} PUBLIC ${BOOST_ROOT})
         target_link_directories(${BOOST_JSON_TARGET} PUBLIC ${BOOST_ROOT}/stage/lib)
     else()
+        hunter_add_package(Boost COMPONENTS system)
         find_package(Boost REQUIRED COMPONENTS system)
         target_link_libraries(${BOOST_JSON_TARGET} PUBLIC Boost::system)
         include(cmake/make_cmake_installer.cmake)
@@ -157,6 +164,7 @@ else()
     #
     # Out-of-tree, non-standalone build
     #
+    hunter_add_package(Boost COMPONENTS system)
     find_package(Boost COMPONENTS system)
     target_link_libraries(${BOOST_JSON_TARGET}
         PUBLIC
@@ -164,11 +172,13 @@ else()
     )
 endif()
 
-if (BUILD_TESTING)
-    add_subdirectory(test)
-endif()
+if(BOOST_JSON_ALLOW_TESTS)
+    if (BUILD_TESTING)
+        add_subdirectory(test)
+    endif()
 
-if (BUILD_TESTING AND NOT BOOST_SUPERPROJECT_VERSION)
-    add_subdirectory(bench)
-    add_subdirectory(example)
+    if (BUILD_TESTING AND NOT BOOST_SUPERPROJECT_VERSION)
+            add_subdirectory(bench)
+            add_subdirectory(example)
+    endif ()
 endif()
